@@ -1,0 +1,52 @@
+[
+{
+  "directory": "/home/yee/Documents/SMPL++/build",
+  "command": "/usr/bin/c++   -I/home/yee/Documents/SMPL++/include -isystem /usr/local/include/opencv4 -isystem /usr/local/include -I/usr/include/libdrm -isystem /usr/local/include/torch/csrc/api/include -isystem /usr/local/cuda-10.0/include  -g   -D_GLIBCXX_USE_CXX11_ABI=0 -std=c++11 -std=gnu++14 -o CMakeFiles/smplpp.out.dir/source/main.cpp.o -c /home/yee/Documents/SMPL++/source/main.cpp",
+  "file": "/home/yee/Documents/SMPL++/source/main.cpp"
+},
+{
+  "directory": "/home/yee/Documents/SMPL++/build",
+  "command": "/usr/bin/c++   -I/home/yee/Documents/SMPL++/include -isystem /usr/local/include/opencv4 -isystem /usr/local/include -I/usr/include/libdrm -isystem /usr/local/include/torch/csrc/api/include -isystem /usr/local/cuda-10.0/include  -g   -D_GLIBCXX_USE_CXX11_ABI=0 -std=c++11 -std=gnu++14 -o CMakeFiles/smplpp.out.dir/source/definition/def.cpp.o -c /home/yee/Documents/SMPL++/source/definition/def.cpp",
+  "file": "/home/yee/Documents/SMPL++/source/definition/def.cpp"
+},
+{
+  "directory": "/home/yee/Documents/SMPL++/build",
+  "command": "/usr/bin/c++   -I/home/yee/Documents/SMPL++/include -isystem /usr/local/include/opencv4 -isystem /usr/local/include -I/usr/include/libdrm -isystem /usr/local/include/torch/csrc/api/include -isystem /usr/local/cuda-10.0/include  -g   -D_GLIBCXX_USE_CXX11_ABI=0 -std=c++11 -std=gnu++14 -o CMakeFiles/smplpp.out.dir/source/toolbox/Exception.cpp.o -c /home/yee/Documents/SMPL++/source/toolbox/Exception.cpp",
+  "file": "/home/yee/Documents/SMPL++/source/toolbox/Exception.cpp"
+},
+{
+  "directory": "/home/yee/Documents/SMPL++/build",
+  "command": "/usr/bin/c++   -I/home/yee/Documents/SMPL++/include -isystem /usr/local/include/opencv4 -isystem /usr/local/include -I/usr/include/libdrm -isystem /usr/local/include/torch/csrc/api/include -isystem /usr/local/cuda-10.0/include  -g   -D_GLIBCXX_USE_CXX11_ABI=0 -std=c++11 -std=gnu++14 -o CMakeFiles/smplpp.out.dir/source/toolbox/Tester.cpp.o -c /home/yee/Documents/SMPL++/source/toolbox/Tester.cpp",
+  "file": "/home/yee/Documents/SMPL++/source/toolbox/Tester.cpp"
+},
+{
+  "directory": "/home/yee/Documents/SMPL++/build",
+  "command": "/usr/bin/c++   -I/home/yee/Documents/SMPL++/include -isystem /usr/local/include/opencv4 -isystem /usr/local/include -I/usr/include/libdrm -isystem /usr/local/include/torch/csrc/api/include -isystem /usr/local/cuda-10.0/include  -g   -D_GLIBCXX_USE_CXX11_ABI=0 -std=c++11 -std=gnu++14 -o CMakeFiles/smplpp.out.dir/source/toolbox/XtensorEx.cpp.o -c /home/yee/Documents/SMPL++/source/toolbox/XtensorEx.cpp",
+  "file": "/home/yee/Documents/SMPL++/source/toolbox/XtensorEx.cpp"
+},
+{
+  "directory": "/home/yee/Documents/SMPL++/build",
+  "command": "/usr/bin/c++   -I/home/yee/Documents/SMPL++/include -isystem /usr/local/include/opencv4 -isystem /usr/local/include -I/usr/include/libdrm -isystem /usr/local/include/torch/csrc/api/include -isystem /usr/local/cuda-10.0/include  -g   -D_GLIBCXX_USE_CXX11_ABI=0 -std=c++11 -std=gnu++14 -o CMakeFiles/smplpp.out.dir/source/smpl/BlendShape.cpp.o -c /home/yee/Documents/SMPL++/source/smpl/BlendShape.cpp",
+  "file": "/home/yee/Documents/SMPL++/source/smpl/BlendShape.cpp"
+},
+{
+  "directory": "/home/yee/Documents/SMPL++/build",
+  "command": "/usr/bin/c++   -I/home/yee/Documents/SMPL++/include -isystem /usr/local/include/opencv4 -isystem /usr/local/include -I/usr/include/libdrm -isystem /usr/local/include/torch/csrc/api/include -isystem /usr/local/cuda-10.0/include  -g   -D_GLIBCXX_USE_CXX11_ABI=0 -std=c++11 -std=gnu++14 -o CMakeFiles/smplpp.out.dir/source/smpl/JointRegression.cpp.o -c /home/yee/Documents/SMPL++/source/smpl/JointRegression.cpp",
+  "file": "/home/yee/Documents/SMPL++/source/smpl/JointRegression.cpp"
+},
+{
+  "directory": "/home/yee/Documents/SMPL++/build",
+  "command": "/usr/bin/c++   -I/home/yee/Documents/SMPL++/include -isystem /usr/local/include/opencv4 -isystem /usr/local/include -I/usr/include/libdrm -isystem /usr/local/include/torch/csrc/api/include -isystem /usr/local/cuda-10.0/include  -g   -D_GLIBCXX_USE_CXX11_ABI=0 -std=c++11 -std=gnu++14 -o CMakeFiles/smplpp.out.dir/source/smpl/LinearBlendSkinning.cpp.o -c /home/yee/Documents/SMPL++/source/smpl/LinearBlendSkinning.cpp",
+  "file": "/home/yee/Documents/SMPL++/source/smpl/LinearBlendSkinning.cpp"
+},
+{
+  "directory": "/home/yee/Documents/SMPL++/build",
+  "command": "/usr/bin/c++   -I/home/yee/Documents/SMPL++/include -isystem /usr/local/include/opencv4 -isystem /usr/local/include -I/usr/include/libdrm -isystem /usr/local/include/torch/csrc/api/include -isystem /usr/local/cuda-10.0/include  -g   -D_GLIBCXX_USE_CXX11_ABI=0 -std=c++11 -std=gnu++14 -o CMakeFiles/smplpp.out.dir/source/smpl/SMPL.cpp.o -c /home/yee/Documents/SMPL++/source/smpl/SMPL.cpp",
+  "file": "/home/yee/Documents/SMPL++/source/smpl/SMPL.cpp"
+},
+{
+  "directory": "/home/yee/Documents/SMPL++/build",
+  "command": "/usr/bin/c++   -I/home/yee/Documents/SMPL++/include -isystem /usr/local/include/opencv4 -isystem /usr/local/include -I/usr/include/libdrm -isystem /usr/local/include/torch/csrc/api/include -isystem /usr/local/cuda-10.0/include  -g   -D_GLIBCXX_USE_CXX11_ABI=0 -std=c++11 -std=gnu++14 -o CMakeFiles/smplpp.out.dir/source/smpl/WorldTransformation.cpp.o -c /home/yee/Documents/SMPL++/source/smpl/WorldTransformation.cpp",
+  "file": "/home/yee/Documents/SMPL++/source/smpl/WorldTransformation.cpp"
+}
+]
