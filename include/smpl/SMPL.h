@@ -34,8 +34,8 @@
 //----------
 #include <string>
 //----------
-#include <xtensor/xarray.hpp>
-#include <xtensor/xjson.hpp>
+#include <nlohmann/json.hpp>
+#include <torch/torch.h>
 //----------
 #include "smpl/BlendShape.h"
 #include "smpl/JointRegression.h"
@@ -71,28 +71,55 @@ namespace smpl {
  * 
  * ATTRIBUTES:
  * 
- *      - __modelPath: <private>
+ *      - m__device: <private>
+ *          Torch device to run the module, could be CPUs or GPUs.
+ * 
+ *      - m__modelPath: <private>
  *          Path to the JSON model file.
  * 
- *      - __vertPath: <private>
+ *      - m__vertPath: <private>
  *          Path to store the mesh OBJ file.
  * 
- *      - __model: <private>
+ *      - m__faceIndices: <private>
+ *          Vertex indices of each face, (13776, 3)
+ * 
+ *      - m__shapeBlendBasis: <private>
+ *          Basis of the shape-dependent shape space,
+ *          (6890, 3, 10).
+ * 
+ *      - m__poseBlendBasis: <private>
+ *          Basis of the pose-dependent shape space, (6890, 3, 207).
+ * 
+ *      - m__templateRestShape: <private>
+ *          Template shape in rest pose, (6890, 3).
+ * 
+ *      - m__jointRegressor: <private>
+ *          Joint coefficients of each vertices for regressing them to joint
+ *          locations, (24, 6890).
+ * 
+ *      - m__kinematicTree: <private>
+ *          Hierarchy relation between joints, the root is at the belly button,
+ *          (2, 24).
+ * 
+ *      - m__weights: <private>
+ *          Weights for linear blend skinning, (6890, 24).
+ * 
+ *      - m__model: <private>
  *          JSON object represents.
  * 
- *      - __blender: <private>
+ *      - m__blender: <private>
  *          A module to generate shape blend shape and pose blend shape
  *          by combining parameters thetas and betas with their own basis.
  * 
- *      - __regressor: <private>
+ *      - m__regressor: <private>
  *          A module to regress vertex position into joint location of the new
  *          shape with different pose deformation considered.
  * 
- *      - __transformer: <private>
+ *      - m__transformer: <private>
  *          A module to transform joints from T-pose's position into the ones 
  *          of new pose.
  * 
- *      - __skinner: <private>
+ *      - m__skinner: <private>
  *          A module to do linear blend skinning.
  * 
  * METHODS:
@@ -104,7 +131,8 @@ namespace smpl {
  *          Default constructor.
  * 
  *      - SMPL: <public>
- *          Constructor to initialize model path.
+ *          Constructor to initialize model path, vertex path, and torch 
+ *          device.
  * 
  *      - SMPL: <public>
  *          Copy constructor.
@@ -123,6 +151,9 @@ namespace smpl {
  *      %
  *          Setter and Getter
  *      %
+ *      - setDevice: <public>
+ *          Set the torch device.
+ * 
  *      - setPath: <public>
  *          Set model path to the JSON model file.
  * 
@@ -162,14 +193,24 @@ class SMPL final
 
 private: // PIRVATE ATTRIBUTES
 
-    std::string __modelPath;
-    std::string __vertPath;
-    nlohmann::json __model;
+    torch::Device m__device;
 
-    BlendShape __blender;
-    JointRegression __regressor;
-    WorldTransformation __transformer;
-    LinearBlendSkinning __skinner;
+    std::string m__modelPath;
+    std::string m__vertPath;
+    nlohmann::json m__model;
+
+    torch::Tensor m__faceIndices;
+    torch::Tensor m__shapeBlendBasis;
+    torch::Tensor m__poseBlendBasis;
+    torch::Tensor m__templateRestShape;
+    torch::Tensor m__jointRegressor;
+    torch::Tensor m__kinematicTree;
+    torch::Tensor m__weights;
+
+    BlendShape m__blender;
+    JointRegression m__regressor;
+    WorldTransformation m__transformer;
+    LinearBlendSkinning m__skinner;
 
 protected: // PROTECTED ATTRIBUTES
 
@@ -183,7 +224,8 @@ public: // PUBLIC METHODS
 
     // %% Constructor and Deconstructor %%
     SMPL() noexcept(true);
-    SMPL(std::string modelPath, std::string vertPath) noexcept(false);
+    SMPL(std::string &modelPath, 
+        std::string &vertPath, torch::Device &device) noexcept(false);
     SMPL(const SMPL& smpl) noexcept(false);
     ~SMPL() noexcept(true);
 
@@ -191,20 +233,21 @@ public: // PUBLIC METHODS
     SMPL &operator=(const SMPL& smpl) noexcept(false);
 
     // %% Setter and Getter %%
-    void setModelPath(std::string modelPath) noexcept(false);
-    void setVertPath(std::string vertexPath) noexcept(false);
+    void setDevice(const torch::Device &device) noexcept(false);
+    void setModelPath(const std::string &modelPath) noexcept(false);
+    void setVertPath(const std::string &vertexPath) noexcept(false);
 
-    xt::xarray<double> getRestShape() noexcept(false);
-    xt::xarray<uint32_t> getFaceIndex() noexcept(false);
-    xt::xarray<double> getRestJoint() noexcept(false);
-    xt::xarray<double> getVertex() noexcept(false);
+    torch::Tensor getRestShape() noexcept(false);
+    torch::Tensor getFaceIndex() noexcept(false);
+    torch::Tensor getRestJoint() noexcept(false);
+    torch::Tensor getVertex() noexcept(false);
 
     // %% Modeling %%
     void init() noexcept(false);
     void launch(
-        xt::xarray<double> beta,
-        xt::xarray<double> theta) noexcept(false);
-    void out(size_t) noexcept(false);
+        torch::Tensor &beta,
+        torch::Tensor &theta) noexcept(false);
+    void out(int64_t index) noexcept(false);
 
 };
 

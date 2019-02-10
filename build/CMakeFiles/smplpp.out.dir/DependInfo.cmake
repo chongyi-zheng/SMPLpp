@@ -13,7 +13,7 @@ set(CMAKE_DEPENDS_CHECK_CXX
   "/home/yee/Documents/SMPL++/source/smpl/WorldTransformation.cpp" "/home/yee/Documents/SMPL++/build/CMakeFiles/smplpp.out.dir/source/smpl/WorldTransformation.cpp.o"
   "/home/yee/Documents/SMPL++/source/toolbox/Exception.cpp" "/home/yee/Documents/SMPL++/build/CMakeFiles/smplpp.out.dir/source/toolbox/Exception.cpp.o"
   "/home/yee/Documents/SMPL++/source/toolbox/Tester.cpp" "/home/yee/Documents/SMPL++/build/CMakeFiles/smplpp.out.dir/source/toolbox/Tester.cpp.o"
-  "/home/yee/Documents/SMPL++/source/toolbox/XtensorEx.cpp" "/home/yee/Documents/SMPL++/build/CMakeFiles/smplpp.out.dir/source/toolbox/XtensorEx.cpp.o"
+  "/home/yee/Documents/SMPL++/source/toolbox/TorchEx.cpp" "/home/yee/Documents/SMPL++/build/CMakeFiles/smplpp.out.dir/source/toolbox/TorchEx.cpp.o"
   )
 set(CMAKE_CXX_COMPILER_ID "GNU")
 

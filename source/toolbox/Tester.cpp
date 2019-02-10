@@ -32,12 +32,14 @@
 //----------
 #include <fstream>
 //----------
+#include <xtensor/xarray.hpp>
 #include <xtensor/xjson.hpp>
 //----------
 #include "definition/def.h"
 #include "toolbox/Tester.h"
+#include "toolbox/TorchEx.hpp"
+#include "toolbox/Exception.h"
 #include "toolbox/Singleton.hpp"
-#include "toolbox/XtensorEx.hpp"
 #include "smpl/BlendShape.h"
 #include "smpl/JointRegression.h"
 #include "smpl/WorldTransformation.h"
@@ -75,7 +77,8 @@ namespace smpl {
  * 
  * 
  */
-Tester::Tester() noexcept(true)
+Tester::Tester() noexcept(true) :
+    m__device(torch::kCPU)
 {
 }
 
@@ -97,7 +100,8 @@ Tester::Tester() noexcept(true)
  * 
  * 
  */
-Tester::Tester(const Tester &tester) noexcept(true)
+Tester::Tester(const Tester &tester) noexcept(true) :
+    m__device(torch::kCPU)
 {
     *this = tester;
 }
@@ -142,8 +146,43 @@ Tester::~Tester() noexcept(true)
  *          Current instantiation. 
  * 
  */
-Tester &Tester::operator=(const Tester &tester) noexcept(true)
+Tester &Tester::operator=(const Tester &tester) noexcept(false)
 {
+    if (tester.m__device.has_index()) {
+        m__device = tester.m__device;
+    }
+    else {
+        throw smpl_error("Tester", "Failed to fetch device index!");
+    }
+
+    return *this;
+}
+
+/**setDevice
+ * 
+ * Brief
+ * ----------
+ * 
+ *      Set the torch device.
+ * 
+ * Arguments
+ * ----------
+ * 
+ * 
+ * Return
+ * ----------
+ * 
+ */
+void Tester::setDevice(const torch::Device& device) noexcept(false)
+{
+    if (device.has_index()) {
+        m__device = device;
+    }
+    else {
+        throw smpl_error("Tester", "Failed to fetch device index!");
+    }
+
+    return;
 }
 
 /**singleton
@@ -215,22 +254,26 @@ void Tester::import() noexcept(true)
     nlohmann::json model;
     file >> model;
 
-    xt::xarray<uint32_t> kinematricTree;
-    xt::from_json(model["kinematic_tree"], kinematricTree);
+    xt::xarray<int64_t> kinematicTree_;
+    xt::from_json(model["kinematic_tree"], kinematicTree_);
 
-    //
-    // correct result
-    //
-    xt::xarray<double> kinematricTree_ {
-        {4294967295, 0, 0, 0, 1, 2, 3, 4, 5, 6, 7, 8,
-        9, 9, 9, 12, 13, 14, 16, 17, 18, 19, 20, 21},
-        {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
-        12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23}
-    };// (2, 24)
+    /**correct result 
+     * 
+     * - kinematicTree: [2, 24]
+     *      [
+     *          [4294967295, 0, 0, 0, 1, 2, 3, 4, 5, 6, 7, 8,
+     *          9, 9, 9, 12, 13, 14, 16, 17, 18, 19, 20, 21],
+     *          [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
+     *          12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
+     *      ]
+     */
+    torch::Tensor kinematicTree = torch::from_blob(
+        kinematicTree_.data(), {2, JOINT_NUM}, torch::kInt64
+    ).to(m__device);
 
-    std::cout << "kinematic tree: ";
-    XtensorEx::printShape(kinematricTree);
-    std::cout << kinematricTree << std::endl;
+    std::cout << "kinematic tree: " 
+        << kinematicTree.sizes() << std::endl;
+    std::cout << kinematicTree << std::endl;
 
     std::cout << "PASS!" << std::endl;
     std::cout << "---------------------------------" << std::endl;
@@ -263,14 +306,14 @@ void Tester::import() noexcept(true)
  */
 void Tester::blendShape() noexcept(true)
 {
-    int batchSize = BATCH_SIZE_RAW;
-    int vertexNum = VERTEX_NUM_RAW;
-    BATCH_SIZE_RAW = 1;
-    VERTEX_NUM_RAW = 1;
+    int batchSize = BATCH_SIZE;
+    int vertexNum = VERTEX_NUM;
+    BATCH_SIZE = 1;
+    VERTEX_NUM = 1;
 
     std::cout << "---------- <BlendShape> Test ----------" << std::endl;
 
-    xt::xarray<double> theta {
+    xt::xarray<float> theta_ {
         {
             {0.79172504, 0.52889492, 0.56804456},
             {0.92559664, 0.07103606, 0.0871293 },
@@ -297,16 +340,21 @@ void Tester::blendShape() noexcept(true)
             {0.28280696, 0.12019656, 0.2961402 },
             {0.11872772, 0.31798318, 0.41426299}
         }
-  };// (1, 24, 3)
+    };// (1, 24, 3)
+    torch::Tensor theta = torch::from_blob(theta_.data(), 
+        {BATCH_SIZE, JOINT_NUM, 3}).to(m__device);
 
-    xt::xarray<double> beta {
+
+    xt::xarray<float> beta_ {
         {
             0.5488135  , 0.71518937, 0.60276338, 0.54488318, 0.4236548 , 
             0.64589411 , 0.43758721, 0.891773  , 0.96366276, 0.38344152
         }
     };// (1, 10)
+    torch::Tensor beta = torch::from_blob(beta_.data(),
+        {BATCH_SIZE, SHAPE_BASIS_DIM}).to(m__device);
 
-    xt::xarray<double> poseBlendBasis {
+    xt::xarray<float> poseBlendBasis_ {
         {
             {0.0641475 , 0.69247212, 0.56660145, 0.26538949, 0.52324805,
             0.09394051, 0.5759465 , 0.9292962 , 0.31856895, 0.66741038,
@@ -438,8 +486,10 @@ void Tester::blendShape() noexcept(true)
             0.22286382, 0.080532  }
         }
     };// (1, 3, 207)
+    torch::Tensor poseBlendBasis = torch::from_blob(poseBlendBasis_.data(), 
+        {BATCH_SIZE, 3, POSE_BASIS_DIM}).to(m__device);
 
-    xt::xarray<double> shapeBlendBasis {
+    xt::xarray<float> shapeBlendBasis_ {
         {
             {0.08531092, 0.22139645, 0.10001406, 0.2650397 , 0.06614946,
             0.06560487, 0.85627618, 0.16212026, 0.55968241, 0.77345554},
@@ -451,62 +501,66 @@ void Tester::blendShape() noexcept(true)
             0.75928245, 0.36454463, 0.50106317, 0.37638916, 0.36491184}
         }
     };// (1, 3, 10)
+    torch::Tensor shapeBlendBasis = torch::from_blob(shapeBlendBasis_.data(),
+        {BATCH_SIZE, 3, SHAPE_BASIS_DIM}).to(m__device);
 
-    //
-    // correct results
-    //
-    xt::xarray<double> shapeBlendShape_ {
-        {
-            {1.835449, 3.082224, 3.695877}
-        }
-    };
+    /**correct result
+     *
+     * - shapeBlendShape: [1, 3]
+     *      [
+     *          [1.835449, 3.082224, 3.695877]
+     *      ]
+     * 
+     * - poseBlendShape: [1, 3]
+     *      [
+     *          [
+     *              [0.912995, -1.879041, -3.56463]
+     *          ]
+     *      ]
+     * 
+     * - poseRotation: [5, 3, 3]
+     *      [
+     *          [
+     *              [ 0.728415, -0.269833,  0.629764],
+     *              [ 0.647397,  0.571931, -0.503758],
+     *              [-0.224251,  0.774652,  0.591292]
+     *          ],
+     *          [
+     *              [ 0.994126, -0.044481,  0.098667],
+     *              [ 0.105604,  0.598255, -0.794316],
+     *              [-0.023696,  0.80007 ,  0.599438],
+     *          ],
+     *          [
+     *              [ 0.41794 , -0.612729,  0.670738],
+     *              [ 0.627818,  0.728445,  0.274249],
+     *              [-0.656636,  0.306481,  0.689129]
+     *          ],
+     *          [
+     *              [ 0.346577, -0.172097,  0.922099],
+     *              [ 0.869102,  0.428758, -0.246636],
+     *              [-0.352912,  0.886876,  0.298167]
+     *          ],
+     *          [
+     *              [ 0.70951 ,  0.065427,  0.701652],
+     *              [ 0.270361,  0.894214, -0.356772],
+     *              [-0.650769,  0.442832,  0.616765]
+     *          ]
+     *      ]
+     * 
+     * - restPoseRotation: [1, 3, 3]
+     *      [
+     *          [1., 0., 0.],
+     *          [0., 1., 0.],
+     *          [0., 0., 1.]
+     *      ]
+     */
 
-    xt::xarray<double> poseBlendShape_ {
-        {
-            { 0.912995, -1.879041, -3.56463 }
-        }
-    };
-
-    xt::xarray<double> poseRotation_ {
-        {
-            { 0.728415, -0.269833,  0.629764},
-            { 0.647397,  0.571931, -0.503758},
-            {-0.224251,  0.774652,  0.591292}
-        },
-        {
-            { 0.994126, -0.044481,  0.098667},
-            { 0.105604,  0.598255, -0.794316},
-            {-0.023696,  0.80007 ,  0.599438}
-        },
-        {
-            { 0.41794 , -0.612729,  0.670738},
-            { 0.627818,  0.728445,  0.274249},
-            {-0.656636,  0.306481,  0.689129}
-        },
-        {
-            { 0.346577, -0.172097,  0.922099},
-            { 0.869102,  0.428758, -0.246636},
-            {-0.352912,  0.886876,  0.298167}
-        },
-        {
-            { 0.70951 ,  0.065427,  0.701652},
-            { 0.270361,  0.894214, -0.356772},
-            {-0.650769,  0.442832,  0.616765}
-        }
-    };
-    
-    xt::xarray<double> restPoseRotation_ {
-        {
-            {1., 0., 0.},
-            {0., 1., 0.},
-            {0., 0., 1.}
-        }
-    };
-
-    xt::xarray<double> shapeBlendShape, poseBlendShape;
-    xt::xarray<double> poseRotation, restPoseRotation;
+    torch::Tensor shapeBlendShape, poseBlendShape;
+    torch::Tensor poseRotation, restPoseRotation;
     try {
         BlendShape blendShape;
+        blendShape.setDevice(m__device);
+
         blendShape.setTheta(theta);
         blendShape.setBeta(beta);
         blendShape.setPoseBlendBasis(poseBlendBasis);
@@ -523,45 +577,43 @@ void Tester::blendShape() noexcept(true)
         std::cerr << e.what() << std::endl;
     }
 
-    std::cout << "shape blend shape: ";
-    XtensorEx::printShape(shapeBlendShape);// (1, 1, 3)
+    std::cout << "shape blend shape: " 
+        << shapeBlendShape.sizes() << std::endl;// (1, 1, 3)
     std::cout << shapeBlendShape << std::endl;
     std::cout << std::endl;
 
-    std::cout << "pose blend shape: ";
-    XtensorEx::printShape(poseBlendShape);// (1, 3, 3)
+    std::cout << "pose blend shape: "
+        << poseBlendShape.sizes() << std::endl;// (1, 3, 3)
     std::cout << poseBlendShape << std::endl;
     std::cout << std::endl;
 
-    xt::xarray<double> poseRotSlice = xt::view(
-            poseRotation,
-            0,
-            xt::range(0, 5),
-            xt::all(),
-            xt::all()
-        );
-    std::cout << "first five pose rotation: ";
-    XtensorEx::printShape(poseRotSlice);// (5, 3, 3)
+    torch::Tensor poseRotSlice = TorchEx::indexing(poseRotation,
+        torch::IntList({0}),
+        torch::IntList({0, 5}),
+        torch::IntList(),
+        torch::IntList()
+    );
+    std::cout << "first five pose rotation: "
+        << poseRotSlice.sizes() << std::endl;// (5, 3, 3)
     std::cout << poseRotSlice << std::endl;// the first five rotation
     std::cout << std::endl;
-
-    xt::xarray<double> restRotSlice = xt::view(
-            restPoseRotation,
-            xt::all(),
-            0,
-            xt::all(),
-            xt::all()
-        );
-    std::cout << "first rest pose rotation: ";
-    XtensorEx::printShape(restRotSlice);// (1, 3, 3)
+    
+    torch::Tensor restRotSlice = TorchEx::indexing(restPoseRotation,
+        torch::IntList(),
+        torch::IntList({0}),
+        torch::IntList(),
+        torch::IntList()
+    );
+    std::cout << "first rest pose rotation: "
+        << restRotSlice.sizes() << std::endl;// (1, 3, 3)
     std::cout << restRotSlice << std::endl;// the first rotation
     std::cout << std::endl;
 
     std::cout << "PASS!" << std::endl;
     std::cout << "---------------------------------------" << std::endl;
 
-    BATCH_SIZE_RAW = batchSize;
-    VERTEX_NUM_RAW = vertexNum;
+    BATCH_SIZE = batchSize;
+    VERTEX_NUM = vertexNum;
 
     return;
 }
@@ -591,22 +643,24 @@ void Tester::blendShape() noexcept(true)
  */
 void Tester::jointRegression() noexcept(true)
 {
-    int batchSize = BATCH_SIZE_RAW;
-    int vertexNum = VERTEX_NUM_RAW;
-    BATCH_SIZE_RAW = 1;
-    VERTEX_NUM_RAW = 5;
+    int batchSize = BATCH_SIZE;
+    int vertexNum = VERTEX_NUM;
+    BATCH_SIZE = 1;
+    VERTEX_NUM = 5;
 
     std::cout << "---------- <JointRegression> Test ----------" << std::endl;
 
-    xt::xarray<double> templateShape {
+    xt::xarray<float> templateShape_ {
         {0.5488135 , 0.71518937, 0.60276338},
         {0.54488318, 0.4236548 , 0.64589411},
         {0.43758721, 0.891773  , 0.96366276},
         {0.38344152, 0.79172504, 0.52889492},
         {0.56804456, 0.92559664, 0.07103606}
     };// (5, 3)
+    torch::Tensor templateShape = torch::from_blob(templateShape_.data(),
+        {VERTEX_NUM, 3}).to(m__device);
 
-    xt::xarray<double> jointRegressor {
+    xt::xarray<float> jointRegressor_ {
         {0.0871293 , 0.0202184 , 0.83261985, 0.77815675, 0.87001215},
         {0.97861834, 0.79915856, 0.46147936, 0.78052918, 0.11827443},
         {0.63992102, 0.14335329, 0.94466892, 0.52184832, 0.41466194},
@@ -632,8 +686,10 @@ void Tester::jointRegression() noexcept(true)
         {0.60639321, 0.0191932 , 0.30157482, 0.66017354, 0.29007761},
         {0.61801543, 0.4287687 , 0.13547406, 0.29828233, 0.56996491}
     };// (24, 5)
+    torch::Tensor jointRegressor = torch::from_blob(jointRegressor_.data(),
+        {JOINT_NUM, VERTEX_NUM}).to(m__device);
 
-    xt::xarray<double> shapeBlendShape {
+    xt::xarray<float> shapeBlendShape_ {
         {
             {0.1494483 , 0.86812606, 0.16249293},
             {0.61555956, 0.12381998, 0.84800823},
@@ -642,8 +698,10 @@ void Tester::jointRegression() noexcept(true)
             {0.7220556 , 0.86638233, 0.97552151}
         }
     };// (1, 5, 3)
+    torch::Tensor shapeBlendShape = torch::from_blob(shapeBlendShape_.data(),
+        {BATCH_SIZE, VERTEX_NUM, 3}).to(m__device);
 
-    xt::xarray<double> poseBlendShape {
+    xt::xarray<float> poseBlendShape_ {
         {
             {0.59087276, 0.57432525, 0.65320082},
             {0.65210327, 0.43141844, 0.8965466 },
@@ -652,52 +710,57 @@ void Tester::jointRegression() noexcept(true)
             {0.91948261, 0.7142413 , 0.99884701}
         }
     };// (1, 5, 3)
+    torch::Tensor poseBlendShape = torch::from_blob(poseBlendShape_.data(),
+        {BATCH_SIZE, VERTEX_NUM, 3}).to(m__device);
 
-    //
-    // correct results
-    //
-    xt::xarray<double> restShape_ {
-        {
-            {1.289135, 2.157641, 1.418457},
-            {1.812546, 0.978893, 2.390449},
-            {1.612468, 1.896739, 2.262769},
-            {1.258803, 2.193042, 1.082664},
-            {2.209583, 2.50622 , 2.045405}
-        }
-    };// (1, 5, 3)
+    /**correct results
+     * 
+     * - restShape: (1, 5, 3)
+     *      [
+     *          [
+     *              [1.289135, 2.157641, 1.418457],
+     *              [1.812546, 0.978893, 2.390449],
+     *              [1.612468, 1.896739, 2.262769],
+     *              [1.258803, 2.193042, 1.082664],
+     *              [2.209583, 2.50622 , 2.045405]
+     *          ]
+     *      ]
+     * 
+     * - joints: (1, 24, 3)
+     *      [
+     *          [2.595438, 4.083213, 2.913282],
+     *          [2.691068, 4.035417, 3.465978],
+     *          [2.560358, 3.991899, 2.945506],
+     *          [1.932566, 2.389283, 2.56251 ],
+     *          [3.216363, 4.841475, 3.87352 ],
+     *          [2.514121, 3.112146, 2.641321],
+     *          [1.484908, 2.486839, 1.694772],
+     *          [2.45321 , 3.113077, 2.765337],
+     *          [1.712245, 2.115405, 2.160274],
+     *          [1.372309, 1.828988, 1.52776 ],
+     *          [1.834302, 2.595169, 2.565565],
+     *          [3.669125, 5.454995, 4.154255],
+     *          [0.792384, 1.046224, 1.03244 ],
+     *          [1.827013, 2.870513, 2.223435],
+     *          [2.369021, 3.366848, 2.651944],
+     *          [1.858591, 2.647657, 2.428134],
+     *          [1.214805, 1.883359, 1.863242],
+     *          [2.458281, 4.173653, 3.135531],
+     *          [3.13185 , 4.111864, 3.326101],
+     *          [3.349709, 4.094417, 3.709395],
+     *          [3.315481, 4.513383, 4.00757 ],
+     *          [3.116701, 4.538026, 3.690847],
+     *          [1.494156, 2.914095, 1.858294],
+     *          [1.968068, 2.876717, 2.188738]
+     *      ]
+     * 
+     */
 
-    xt::xarray<double> joints_ {
-        {
-            {2.595438, 4.083213, 2.913282},
-            {2.691068, 4.035417, 3.465978},
-            {2.560358, 3.991899, 2.945506},
-            {1.932566, 2.389283, 2.56251 },
-            {3.216363, 4.841475, 3.87352 },
-            {2.514121, 3.112146, 2.641321},
-            {1.484908, 2.486839, 1.694772},
-            {2.45321 , 3.113077, 2.765337},
-            {1.712245, 2.115405, 2.160274},
-            {1.372309, 1.828988, 1.52776 },
-            {1.834302, 2.595169, 2.565565},
-            {3.669125, 5.454995, 4.154255},
-            {0.792384, 1.046224, 1.03244 },
-            {1.827013, 2.870513, 2.223435},
-            {2.369021, 3.366848, 2.651944},
-            {1.858591, 2.647657, 2.428134},
-            {1.214805, 1.883359, 1.863242},
-            {2.458281, 4.173653, 3.135531},
-            {3.13185 , 4.111864, 3.326101},
-            {3.349709, 4.094417, 3.709395},
-            {3.315481, 4.513383, 4.00757 },
-            {3.116701, 4.538026, 3.690847},
-            {1.494156, 2.914095, 1.858294},
-            {1.968068, 2.876717, 2.188738}
-        }
-    };// (1, 24, 3)
-
-    xt::xarray<double> restShape, joints;
+    torch::Tensor restShape, joints;
     try {
         JointRegression jointRegression;
+        jointRegression.setDevice(m__device);
+
         jointRegression.setShapeBlendShape(shapeBlendShape);
         jointRegression.setPoseBlendShape(poseBlendShape);
         jointRegression.setTemplateRestShape(templateShape);
@@ -713,20 +776,20 @@ void Tester::jointRegression() noexcept(true)
     }
 
     std::cout << "deformed shape in rest pose: ";
-    XtensorEx::printShape(restShape);// (1, 5, 3)
+    std::cout << restShape.sizes() << std::endl;// (1, 5, 3)
     std::cout << restShape << std::endl;
     std::cout << std::endl;
 
     std::cout << "joints of deformed shape: ";
-    XtensorEx::printShape(joints);// (1, 24, 3)
+    std::cout << joints.sizes() << std::endl;// (1, 24, 3)
     std::cout << joints << std::endl;
     std::cout << std::endl;
 
     std::cout << "PASS!" << std::endl;
     std::cout << "--------------------------------------------" << std::endl;
 
-    BATCH_SIZE_RAW = batchSize;
-    VERTEX_NUM_RAW = vertexNum;
+    BATCH_SIZE = batchSize;
+    VERTEX_NUM = vertexNum;
 
     return;
 }
@@ -756,8 +819,8 @@ void Tester::jointRegression() noexcept(true)
  */
 void Tester::worldTransformation() noexcept(true)
 {
-    int batchSize = BATCH_SIZE_RAW;
-    BATCH_SIZE_RAW = 1;
+    int batchSize = BATCH_SIZE;
+    BATCH_SIZE = 1;
 
     std::cout << "---------- <WorldTransformation> Test ----------" << std::endl;
 
@@ -772,14 +835,16 @@ void Tester::worldTransformation() noexcept(true)
      *            the belly button. 
      * 
      */
-    xt::xarray<double> kineTree {
+    xt::xarray<int64_t> kineTree_ {
         {4294967295, 0, 0, 0, 1, 2, 3, 4, 5, 6, 7, 8,
         9, 9, 9, 12, 13, 14, 16, 17, 18, 19, 20, 21},
         {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
         12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23}
     };// (2, 24)
+    torch::Tensor kineTree = torch::from_blob(kineTree_.data(),
+        {2, JOINT_NUM}, torch::kInt64).to(m__device);
 
-    xt::xarray<double> joints {
+    xt::xarray<float> joints_ {
         {
             {0.5488135 , 0.71518937, 0.60276338},
             {0.54488318, 0.4236548 , 0.64589411},
@@ -807,8 +872,10 @@ void Tester::worldTransformation() noexcept(true)
             {0.09609841, 0.97645947, 0.4686512 }
         }
     };// (1, 24, 3)
+    torch::Tensor joints = torch::from_blob(joints_.data(),
+        {BATCH_SIZE, JOINT_NUM, 3}).to(m__device);
 
-    xt::xarray<double> poseRotation {
+    xt::xarray<float> poseRotation_ {
         {
             {
                 {0.95627849, 0.89187929, 0.90854612},
@@ -932,45 +999,53 @@ void Tester::worldTransformation() noexcept(true)
             }
         }
     };// (1, 24, 3, 3)
+    torch::Tensor poseRotation = torch::from_blob(poseRotation_.data(),
+        {BATCH_SIZE, JOINT_NUM, 3, 3});
 
-    // correct results
-    xt::xarray<double> transformations_ {
-        {
-            { 0.956278,  0.891879,  0.908546, -1.161506},
-            { 0.038366,  0.417015,  0.14772 ,  0.306849},
-            { 0.28993 ,  0.175071,  0.390798,  0.082879},
-            { 0.      ,  0.      ,  0.      ,  1.      }
-        },
-        {
-            { 1.393548,  1.288563,  1.551762, -1.983273},
-            { 0.3757  ,  0.310975,  0.300451,  0.069317},
-            { 0.361526,  0.455201,  0.515535, -0.155379},
-            { 0.      ,  0.      ,  0.      ,  1.      }
-        },
-        {
-            { 1.50793 ,  1.256797,  1.213523, -2.02222 },
-            { 0.406074,  0.205106,  0.23734 ,  0.248555},
-            { 0.456527,  0.346317,  0.458883, -0.208346},
-            { 0.      ,  0.      ,  0.      ,  1.      }
-        },
-        {
-            { 1.267205,  1.551624,  1.470787, -2.100431},
-            { 0.419537,  0.390676,  0.292143,  0.10516 },
-            { 0.380306,  0.452636,  0.50812 , -0.233582},
-            { 0.      ,  0.      ,  0.      ,  1.      }
-        },
-        {
-            { 2.229255,  2.2815  ,  2.300334, -3.430226},
-            { 0.494933,  0.557158,  0.508993, -0.241092},
-            { 0.740878,  0.695654,  0.728085, -0.608528},
-            { 0.      ,  0.      ,  0.      ,  1.      }
-        }
-    };// (1, 5, 4, 4)
+    /**correct results
+     * 
+     * - transformations: (1, 5, 4, 4)
+     *      [
+     *          [
+     *              [ 0.956278,  0.891879,  0.908546, -1.161506],
+     *              [ 0.038366,  0.417015,  0.14772 ,  0.306849],
+     *              [ 0.28993 ,  0.175071,  0.390798,  0.082879],
+     *              [ 0.      ,  0.      ,  0.      ,  1.      ]
+     *          ],
+     *          [
+     *              [ 1.393548,  1.288563,  1.551762, -1.983273],
+     *              [ 0.3757  ,  0.310975,  0.300451,  0.069317],
+     *              [ 0.361526,  0.455201,  0.515535, -0.155379],
+     *              [ 0.      ,  0.      ,  0.      ,  1.      ]
+     *          ],
+     *          [
+     *              [ 1.50793 ,  1.256797,  1.213523, -2.02222 ],
+     *              [ 0.406074,  0.205106,  0.23734 ,  0.248555],
+     *              [ 0.456527,  0.346317,  0.458883, -0.208346],
+     *              [ 0.      ,  0.      ,  0.      ,  1.      ]
+     *          ],
+     *          [
+     *              [ 1.267205,  1.551624,  1.470787, -2.100431],
+     *              [ 0.419537,  0.390676,  0.292143,  0.10516 ],
+     *              [ 0.380306,  0.452636,  0.50812 , -0.233582],
+     *              [ 0.      ,  0.      ,  0.      ,  1.      ]
+     *          ],
+     *          [
+     *              [ 2.229255,  2.2815  ,  2.300334, -3.430226],
+     *              [ 0.494933,  0.557158,  0.508993, -0.241092],
+     *              [ 0.740878,  0.695654,  0.728085, -0.608528],
+     *              [ 0.      ,  0.      ,  0.      ,  1.      ]
+     *          ]
+     *      ]
+     * 
+     * 
+     */
 
-
-    xt::xarray<double> transformations;
+    torch::Tensor transformations;
     try {
         WorldTransformation worldTransformation;
+        worldTransformation.setDevice(m__device);
+
         worldTransformation.setKinematicTree(kineTree);
         worldTransformation.setJoint(joints);
         worldTransformation.setPoseRotation(poseRotation);
@@ -983,16 +1058,16 @@ void Tester::worldTransformation() noexcept(true)
         std::cerr << e.what() << std::endl;
     }
 
-    xt::xarray<double> transformationsSlice = xt::view(transformations,
-        xt::all(), xt::range(0, 5), xt::all(), xt::all());
-    std::cout << "first five pose rotation: ";
-    XtensorEx::printShape(transformationsSlice);// (1, 5, 4, 4)
-    std::cout << transformationsSlice << std::endl;
+    torch::Tensor slice = TorchEx::indexing(transformations,
+        torch::IntList(), torch::IntList({0, 5}), torch::IntList());
+    std::cout << "first five pose rotation: "
+        << slice.sizes() << std::endl;// (1, 5, 4, 4)
+    std::cout << slice << std::endl;
 
     std::cout << "PASS!" << std::endl;
     std::cout << "------------------------------------------------" << std::endl;
 
-    BATCH_SIZE_RAW = batchSize;
+    BATCH_SIZE = batchSize;
 
     return;
 }
@@ -1022,15 +1097,15 @@ void Tester::worldTransformation() noexcept(true)
  */
 void Tester::linearBlendSkinning() noexcept(true)
 {
-    int batchSize = BATCH_SIZE_RAW;
-    int vertexNum = VERTEX_NUM_RAW;
-    BATCH_SIZE_RAW = 1;
-    VERTEX_NUM_RAW = 1;
+    int batchSize = BATCH_SIZE;
+    int vertexNum = VERTEX_NUM;
+    BATCH_SIZE = 1;
+    VERTEX_NUM = 1;
 
 
     std::cout << "---------- <LinearBlendSkinning> Test ----------" << std::endl;
 
-    xt::xarray<double> weights {
+    xt::xarray<float> weights_ {
         {
             0.5488135 , 0.71518937, 0.60276338, 0.54488318, 
             0.4236548 , 0.64589411, 0.43758721, 0.891773  , 
@@ -1040,14 +1115,18 @@ void Tester::linearBlendSkinning() noexcept(true)
             0.97861834, 0.79915856, 0.46147936, 0.78052918
         }
     };// (1, 24)
+    torch::Tensor weights = torch::from_blob(weights_.data(),
+        {BATCH_SIZE, JOINT_NUM}).to(m__device);
 
-    xt::xarray<double> restShape {
+    xt::xarray<float> restShape_ {
         {
             {0.11827443, 0.63992102, 0.14335329}
         }
     };// (1, 1, 3)
+    torch::Tensor restShape = torch::from_blob(restShape_.data(),
+        {BATCH_SIZE, VERTEX_NUM, 3}).to(m__device);
 
-    xt::xarray<double> transformation {
+    xt::xarray<float> transformations_ {
         {
             {
                 {0.94466892, 0.52184832, 0.41466194, 0.26455561},
@@ -1196,22 +1275,31 @@ void Tester::linearBlendSkinning() noexcept(true)
             }
         }
     };// (1, 24, 4, 4)
+    torch::Tensor transformations = torch::from_blob(transformations_.data(),
+        {BATCH_SIZE, JOINT_NUM, 4, 4}).to(m__device);
 
-    //
-    // correct results
-    //
-    xt::xarray<double> vertices_ {
-        {
-            {1.077754, 1.091551, 1.083642}
-        }
-    };
+    /**correct results
+     * 
+     * - vertices: (1, 1, 1)
+     *      [
+     *          [
+     *              [1.077754, 1.091551, 1.083642]
+     *          ]
+     *      ]
+     * 
+     * 
+     * 
+     * 
+     */
 
-    xt::xarray<double> vertices;
+    torch::Tensor vertices;
     try {
         LinearBlendSkinning linearBlendSkinning;
+        linearBlendSkinning.setDevice(m__device);
+
         linearBlendSkinning.setWeight(weights);
         linearBlendSkinning.setRestShape(restShape);
-        linearBlendSkinning.setTransformation(transformation);
+        linearBlendSkinning.setTransformation(transformations);
 
         linearBlendSkinning.skinning();
 
@@ -1221,15 +1309,15 @@ void Tester::linearBlendSkinning() noexcept(true)
         std::cerr << e.what() << std::endl;
     }
 
-    std::cout << "posed vertices: ";
-    XtensorEx::printShape(vertices);
+    std::cout << "posed vertices: "
+        << vertices.sizes() << std::endl;// (N, 6890, 3)
     std::cout << vertices << std::endl;
 
     std::cout << "PASS!" << std::endl;
     std::cout << "------------------------------------------------" << std::endl;
 
-    BATCH_SIZE_RAW = batchSize;
-    VERTEX_NUM_RAW = vertexNum;
+    BATCH_SIZE = batchSize;
+    VERTEX_NUM = vertexNum;
 
     return;
 }

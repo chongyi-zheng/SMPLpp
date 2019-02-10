@@ -69,26 +69,26 @@ namespace smpl {
  * 
  * ATTRIBUTES:
  *
- *      - __module: <private>
+ *      - m__module: <private>
  *          Name of the module that have just broken.
  *
- *      - __error: <private>
+ *      - m__error: <private>
  *          Error prompt to be dumped into the standard error port.
  *
- *      - __function: <private>
+ *      - m__function: <private>
  *          Name of the function which throws an exception.
  * 
- *      - __file: <private>
+ *      - m__file: <private>
  *          File of the source code where an exception is thrown.
  *
  * 
- *      - __line: <private>
+ *      - m__line: <private>
  *          Line in file of the source code where an exception is thrown.
  * 
- *      - __stream: <private>
+ *      - m__stream: <private>
  *          A string stream contains all the error message.
  * 
- *      - __message: <private>
+ *      - m__message: <private>
  *          All the error message
  * 
  * METHODS:
@@ -127,14 +127,14 @@ class Exception final : public std::exception
 
 private: // PRIVATE ATTRIBUTES
 
-    std::string __module;
-    std::string __error;
-    std::string __function;
-    std::string __file;
-    int __line;
+    std::string m__module;
+    std::string m__error;
+    std::string m__function;
+    std::string m__file;
+    int m__line;
 
-    std::stringstream __stream;
-    std::string __message;
+    std::stringstream m__stream;
+    std::string m__message;
 
 protected: // PROTECTED ATTRIBUTES
 

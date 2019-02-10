@@ -30,11 +30,9 @@
 //===== INCLUDES ==============================================================
 
 //-----------
-#include <xtensor/xnorm.hpp>
-//-----------
 #include "definition/def.h"
+#include "toolbox/TorchEx.hpp"
 #include "toolbox/Exception.h"
-#include "toolbox/XtensorEx.hpp"
 #include "smpl/BlendShape.h"
 //-----------
 
@@ -70,15 +68,16 @@ namespace smpl {
  * 
  */
 BlendShape::BlendShape() noexcept(true) :
-    __beta(),
-    __shapeBlendBasis(),
-    __shapeBlendShape(),
-    __theta(),
-    __restTheta(),
-    __poseRot(),
-    __restPoseRot(),
-    __poseBlendBasis(),
-    __poseBlendShape()
+    m__device(torch::kCPU),
+    m__beta(),
+    m__shapeBlendBasis(),
+    m__shapeBlendShape(),
+    m__theta(),
+    m__restTheta(),
+    m__poseRot(),
+    m__restPoseRot(),
+    m__poseBlendBasis(),
+    m__poseBlendShape()
 {
 }
 
@@ -87,46 +86,58 @@ BlendShape::BlendShape() noexcept(true) :
  * Brief
  * ----------
  * 
- *      Constructor to initialize a BlendShape module.
+ *      Constructor to initialize shape blend basis, pose blend basis, and
+ *      torch device.
  * 
  * Arguments
  * ----------
  * 
- *      @shapeBlendBasis: - xarray -
+ *      @shapeBlendBasis: - Tensor -
  *          Basis of the shape-dependent shape space, (6890, 3, 10).
  * 
- *      @poseBlendBasis: - xarray -
+ *      @poseBlendBasis: - Tensor -
  *          Basis of the pose-dependent shape space, (6890, 3, 207).
+ * 
+ *      @device: - Device -
+ *          Torch device to run the module, CPUs or GPUs.
  * 
  * Return
  * ----------
  * 
  * 
  */
-BlendShape::BlendShape(xt::xarray<double> shapeBlendBasis,
-        xt::xarray<double> poseBlendBasis) noexcept(false) :
-    __beta(),
-    __shapeBlendBasis(),
-    __shapeBlendShape(),
-    __theta(),
-    __restTheta(),
-    __poseRot(),
-    __restPoseRot(),
-    __poseBlendBasis(),
-    __poseBlendShape()
+BlendShape::BlendShape(torch::Tensor &shapeBlendBasis,
+        torch::Tensor &poseBlendBasis, torch::Device &device) noexcept(false) :
+    m__device(torch::kCPU),
+    m__beta(),
+    m__shapeBlendBasis(),
+    m__shapeBlendShape(),
+    m__theta(),
+    m__restTheta(),
+    m__poseRot(),
+    m__restPoseRot(),
+    m__poseBlendBasis(),
+    m__poseBlendShape()
 {
-    if (shapeBlendBasis.shape() == 
-        xt::xarray<double>::shape_type({VERTEX_NUM, 3, SHAPE_BASIS_DIM})) {
-        __shapeBlendBasis = shapeBlendBasis;
+    if (m__device.has_index()) {
+        m__device = m__device;
+    }
+    else {
+        throw smpl_error("BlendShape", "Failed to fetch device index!");
+    }
+
+    if (shapeBlendBasis.sizes() == 
+        torch::IntArrayRef({VERTEX_NUM, 3, SHAPE_BASIS_DIM})) {
+        m__shapeBlendBasis = shapeBlendBasis.clone().to(m__device);
     }
     else {
         throw smpl_error("BlendShape", 
             "Failed to initialize shape blend basis!");
     }
 
-    if (poseBlendBasis.shape() == 
-        xt::xarray<double>::shape_type({VERTEX_NUM, 3, POSE_BASIS_DIM})) {
-        __poseBlendBasis = poseBlendBasis;
+    if (poseBlendBasis.sizes() == 
+        torch::IntArrayRef({VERTEX_NUM, 3, POSE_BASIS_DIM})) {
+        m__poseBlendBasis = poseBlendBasis.clone().to(m__device);
     }
     else {
         throw smpl_error("BlendShape", 
@@ -152,7 +163,8 @@ BlendShape::BlendShape(xt::xarray<double> shapeBlendBasis,
  * 
  * 
  */
-BlendShape::BlendShape(const BlendShape &blendShape) noexcept(false)
+BlendShape::BlendShape(const BlendShape &blendShape) noexcept(false) :
+    m__device(torch::kCPU)
 {
     try{
         *this = blendShape;
@@ -207,41 +219,49 @@ BlendShape &BlendShape::operator=(const BlendShape &blendShape) noexcept(false)
     //
     //  hard copy
     //
-    if (blendShape.__shapeBlendBasis.shape() == 
-        xt::xarray<double>::shape_type({VERTEX_NUM, 3, SHAPE_BASIS_DIM})) {
-        __shapeBlendBasis = blendShape.__shapeBlendBasis;
+    if (blendShape.m__device.has_index()) {
+        m__device = blendShape.m__device;
+    }
+    else {
+        throw smpl_error("BlendShape", "Failed to fetch device index!");
+    }
+
+    if (blendShape.m__shapeBlendBasis.sizes() == 
+        torch::IntArrayRef({VERTEX_NUM, 3, SHAPE_BASIS_DIM})) {
+        m__shapeBlendBasis = blendShape.m__shapeBlendBasis.clone().to(
+            m__device);
     }
     else {
         throw smpl_error("BlendShape", "Failed to copy shape blend basis!");
     }
 
-    if (blendShape.__poseBlendBasis.shape() == 
-        xt::xarray<double>::shape_type({VERTEX_NUM, 3, POSE_BASIS_DIM})) {
-        __poseBlendBasis = blendShape.__poseBlendBasis;
+    if (blendShape.m__poseBlendBasis.sizes() == 
+        torch::IntArrayRef({VERTEX_NUM, 3, POSE_BASIS_DIM})) {
+        m__poseBlendBasis = blendShape.m__poseBlendBasis.clone().to(m__device);
     }
     else {
         throw smpl_error("BlendShape", "Failed to copy pose blend basis!");
     }
 
-    if (blendShape.__beta.shape() == 
-        xt::xarray<double>::shape_type({BATCH_SIZE, SHAPE_BASIS_DIM})) {
-        __beta = blendShape.__beta;
+    if (blendShape.m__beta.sizes() == 
+        torch::IntArrayRef({BATCH_SIZE, SHAPE_BASIS_DIM})) {
+        m__beta = blendShape.m__beta.clone().to(m__device);
     }
     else {
         throw smpl_error("BlendShape", "Failed to copy beta!");
     }
 
-    if (blendShape.__theta.shape() == 
-        xt::xarray<double>::shape_type({BATCH_SIZE, JOINT_NUM, 3})) {
-        __theta = blendShape.__theta;
+    if (blendShape.m__theta.sizes() == 
+        torch::IntArrayRef({BATCH_SIZE, JOINT_NUM, 3})) {
+        m__theta = blendShape.m__theta.clone().to(m__device);
     }
     else {
         throw smpl_error("BlendShape", "Failed to copy theta!");
     }
 
-    if (blendShape.__restTheta.shape() == 
-        xt::xarray<double>::shape_type({BATCH_SIZE, JOINT_NUM, 3})) {
-        __restTheta = blendShape.__restTheta;
+    if (blendShape.m__restTheta.sizes() == 
+        torch::IntArrayRef({BATCH_SIZE, JOINT_NUM, 3})) {
+        m__restTheta = blendShape.m__restTheta.clone().to(m__device);
     }
     else {
         throw smpl_error("BlendShape", "Failed to copy theta of rest pose!");
@@ -250,32 +270,62 @@ BlendShape &BlendShape::operator=(const BlendShape &blendShape) noexcept(false)
     //
     //  soft copy
     //
-    if (blendShape.__shapeBlendShape.shape() == 
-        xt::xarray<double>::shape_type({BATCH_SIZE, VERTEX_NUM, 3})) {
-        __shapeBlendShape = blendShape.__shapeBlendShape;
+    if (blendShape.m__shapeBlendShape.sizes() == 
+        torch::IntArrayRef({BATCH_SIZE, VERTEX_NUM, 3})) {
+        m__shapeBlendShape = blendShape.m__shapeBlendShape.clone().to(
+            m__device);
     }
 
-    if (blendShape.__poseBlendShape.shape() == 
-        xt::xarray<double>::shape_type({BATCH_SIZE, VERTEX_NUM, 3})) {
-        __poseBlendShape = blendShape.__poseBlendShape;
+    if (blendShape.m__poseBlendShape.sizes() == 
+        torch::IntArrayRef({BATCH_SIZE, VERTEX_NUM, 3})) {
+        m__poseBlendShape = blendShape.m__poseBlendShape.clone().to(m__device);
     }
 
-    if (blendShape.__poseRot.shape() == 
-        xt::xarray<double>::shape_type({BATCH_SIZE, JOINT_NUM, 3, 3})) {
-        __poseRot = blendShape.__poseRot;
+    if (blendShape.m__poseRot.sizes() == 
+        torch::IntArrayRef({BATCH_SIZE, JOINT_NUM, 3, 3})) {
+        m__poseRot = blendShape.m__poseRot.clone().to(m__device);
     }
 
-    if (blendShape.__restPoseRot.shape() ==
-        xt::xarray<double>::shape_type({BATCH_SIZE, JOINT_NUM, 3, 3})) {
-        __restPoseRot = blendShape.__restPoseRot;
+    if (blendShape.m__restPoseRot.sizes() ==
+        torch::IntArrayRef({BATCH_SIZE, JOINT_NUM, 3, 3})) {
+        m__restPoseRot = blendShape.m__restPoseRot.clone().to(m__device);
     }
 
     return *this;
 }
 
+/**setDevice
+ * 
+ * Brief
+ * ----------
+ * 
+ *      Set the torch device.
+ * 
+ * Arguments
+ * ----------
+ * 
+ *      @device: - const Device & -
+ *          The torch device to be used.
+ * 
+ * Return
+ * ----------
+ * 
+ */
+void BlendShape::setDevice(const torch::Device &device) noexcept(false)
+{
+    if (device.has_index()) {
+        m__device = device;
+    }
+    else {
+        throw smpl_error("BlendShape", "Failed to fetch device index!");
+    }
+
+    return;
+}
+
 /**setBeta
  * 
- * Bridef:
+ * Brief
  * ----------
  * 
  *      Set shape coefficient vector.
@@ -283,18 +333,18 @@ BlendShape &BlendShape::operator=(const BlendShape &blendShape) noexcept(false)
  * Arguments
  * ----------
  * 
- *      @beta: - xarray -
+ *      @beta: - const Tensor & -
  *          Batch of shape coefficient vectors, (N, 10).
  * 
  * Return
  * ----------
  * 
  */
-void BlendShape::setBeta(xt::xarray<double> beta) noexcept(false)
+void BlendShape::setBeta(const torch::Tensor &beta) noexcept(false)
 {
-    if (beta.shape() == 
-        xt::xarray<double>::shape_type({BATCH_SIZE, SHAPE_BASIS_DIM})) {
-        __beta = beta;
+    if (beta.sizes() == 
+        torch::IntArrayRef({BATCH_SIZE, SHAPE_BASIS_DIM})) {
+        m__beta = beta.clone().to(m__device);
     }
     else {
         throw smpl_error("BlendShape", "Failed to set beta!");
@@ -313,7 +363,7 @@ void BlendShape::setBeta(xt::xarray<double> beta) noexcept(false)
  * Arguments
  * ----------
  * 
- *      @shapeBlendBasis: - xarray -
+ *      @shapeBlendBasis: - const Tensor & -
  *          Basis of the shape-dependent shape space, (6890, 3, 10).
  * 
  * Return
@@ -321,12 +371,12 @@ void BlendShape::setBeta(xt::xarray<double> beta) noexcept(false)
  * 
  * 
  */
-void BlendShape::setShapeBlendBasis(xt::xarray<double> shapeBlendBasis)
+void BlendShape::setShapeBlendBasis(const torch::Tensor &shapeBlendBasis)
     noexcept(false)
 {
-    if (shapeBlendBasis.shape() == 
-        xt::xarray<double>::shape_type({VERTEX_NUM, 3, SHAPE_BASIS_DIM})) {
-        __shapeBlendBasis = shapeBlendBasis;
+    if (shapeBlendBasis.sizes() == 
+        torch::IntArrayRef({VERTEX_NUM, 3, SHAPE_BASIS_DIM})) {
+        m__shapeBlendBasis = shapeBlendBasis.clone().to(m__device);
     }
     else {
         throw smpl_error("BlendShape", "Failed to set shape blend basis!");
@@ -345,7 +395,7 @@ void BlendShape::setShapeBlendBasis(xt::xarray<double> shapeBlendBasis)
  * Arguments
  * ----------
  * 
- *      @theta: - xarray -
+ *      @theta: - const Tensor & -
  *          Batch of pose axis-angle representations, (N, 24, 3).
  * 
  * Return
@@ -353,11 +403,11 @@ void BlendShape::setShapeBlendBasis(xt::xarray<double> shapeBlendBasis)
  * 
  * 
  */
-void BlendShape::setTheta(xt::xarray<double> theta) noexcept(false)
+void BlendShape::setTheta(const torch::Tensor &theta) noexcept(false)
 {
-    if (theta.shape() == 
-        xt::xarray<double>::shape_type({BATCH_SIZE, JOINT_NUM, 3})) {
-        __theta = theta;
+    if (theta.sizes() == 
+        torch::IntArrayRef({BATCH_SIZE, JOINT_NUM, 3})) {
+        m__theta = theta.clone().to(m__device);
     }
     else {
         throw smpl_error("BlendShape", "Failed to set theta!");
@@ -376,7 +426,7 @@ void BlendShape::setTheta(xt::xarray<double> theta) noexcept(false)
  * Arguments
  * ----------
  * 
- *      @restTheta: - xarray -
+ *      @restTheta: - const Tensor & -
  *          Batch of rest pose axis-angle representations, (N, 24, 3).
  * 
  * Return
@@ -384,12 +434,12 @@ void BlendShape::setTheta(xt::xarray<double> theta) noexcept(false)
  * 
  * 
  */
-void BlendShape::setRestTheta(xt::xarray<double> restTheta)
+void BlendShape::setRestTheta(const torch::Tensor &restTheta)
     noexcept(true)
 {
-    if (restTheta.shape() == 
-        xt::xarray<double>::shape_type({BATCH_SIZE, JOINT_NUM, 3})) {
-        __restTheta = restTheta;
+    if (restTheta.sizes() == 
+        torch::IntArrayRef({BATCH_SIZE, JOINT_NUM, 3})) {
+        m__restTheta = restTheta.clone().to(m__device);
     }
 
     return; 
@@ -405,7 +455,7 @@ void BlendShape::setRestTheta(xt::xarray<double> restTheta)
  * Arguments
  * ----------
  * 
- *      @poseBlendBasis:
+ *      @poseBlendBasis: - const Tensor & -
  *          Basis of the pose-dependent shape space, (6890, 3, 207).
  * 
  * Return
@@ -413,12 +463,12 @@ void BlendShape::setRestTheta(xt::xarray<double> restTheta)
  * 
  * 
  */
-void BlendShape::setPoseBlendBasis(xt::xarray<double> poseBlendBasis)
+void BlendShape::setPoseBlendBasis(const torch::Tensor &poseBlendBasis)
     noexcept(false)
 {
-    if (poseBlendBasis.shape() == 
-        xt::xarray<double>::shape_type({VERTEX_NUM, 3, POSE_BASIS_DIM})) {
-        __poseBlendBasis = poseBlendBasis;
+    if (poseBlendBasis.sizes() == 
+        torch::IntArrayRef({VERTEX_NUM, 3, POSE_BASIS_DIM})) {
+        m__poseBlendBasis = poseBlendBasis.clone().to(m__device);
     }
     else {
         throw smpl_error("BlendShape", "Failed to set pose blend basis!");
@@ -439,17 +489,17 @@ void BlendShape::setPoseBlendBasis(xt::xarray<double> poseBlendBasis)
  * 
  * Return
  * ----------
- *      @shapeBlendShape: - xarray -
+ *      @shapeBlendShape: - Tensor -
  *          Shape blend shape of SMPL model, (N, 6890, 3).
  * 
  */
-xt::xarray<double> BlendShape::getShapeBlendShape() noexcept(false)
+torch::Tensor BlendShape::getShapeBlendShape() noexcept(false)
 {
-    xt::xarray<double> shapeBlendShape;
+    torch::Tensor shapeBlendShape;
 
-    if (__shapeBlendShape.shape() == 
-        xt::xarray<double>::shape_type({BATCH_SIZE, VERTEX_NUM, 3})) {
-        shapeBlendShape = __shapeBlendShape;
+    if (m__shapeBlendShape.sizes() == 
+        torch::IntArrayRef({BATCH_SIZE, VERTEX_NUM, 3})) {
+        shapeBlendShape = m__shapeBlendShape.clone().to(m__device);
     }
     else {
         throw smpl_error("BlendShape", "Failed to get shape blend shape!");
@@ -472,18 +522,18 @@ xt::xarray<double> BlendShape::getShapeBlendShape() noexcept(false)
  * Return
  * ----------
  * 
- *      @poseRotation: - xarray -
+ *      @poseRotation: - Tensor -
  *          Rotation with respect to pose axis-angles representations,
  *          (N, 24, 3, 3).
  * 
  */
-xt::xarray<double> BlendShape::getPoseRotation() noexcept(false)
+torch::Tensor BlendShape::getPoseRotation() noexcept(false)
 {
-    xt::xarray<double> poseRotation;
+    torch::Tensor poseRotation;
 
-    if (__poseRot.shape() == 
-        xt::xarray<double>::shape_type({BATCH_SIZE, JOINT_NUM, 3, 3})) {
-        poseRotation = __poseRot;
+    if (m__poseRot.sizes() == 
+        torch::IntArrayRef({BATCH_SIZE, JOINT_NUM, 3, 3})) {
+        poseRotation = m__poseRot.clone().to(m__device);
     }
     else {
         throw smpl_error("BlendShape", "Failed to get pose rotation!");
@@ -506,17 +556,17 @@ xt::xarray<double> BlendShape::getPoseRotation() noexcept(false)
  * Return
  * ----------
  * 
- *      @restPoseRotation: - xarray -
+ *      @restPoseRotation: - Tensor -
  *          Pose rotation of rest pose, (N, 24, 3, 3).
  * 
  */
-xt::xarray<double> BlendShape::getRestPoseRotation() noexcept(false)
+torch::Tensor BlendShape::getRestPoseRotation() noexcept(false)
 {
-    xt::xarray<double> restPoseRotation;
+    torch::Tensor restPoseRotation;
 
-    if (__restPoseRot.shape() == 
-        xt::xarray<double>::shape_type({BATCH_SIZE, JOINT_NUM, 3, 3})) {
-        restPoseRotation = __restPoseRot;
+    if (m__restPoseRot.sizes() == 
+        torch::IntArrayRef({BATCH_SIZE, JOINT_NUM, 3, 3})) {
+        restPoseRotation = m__restPoseRot.clone().to(m__device);
     }
     else {
         throw smpl_error("BlendShape", "Failed to get rest pose rotation!");
@@ -538,17 +588,17 @@ xt::xarray<double> BlendShape::getRestPoseRotation() noexcept(false)
  * Return
  * ----------
  * 
- *      @poseBlendShape: - xarray -
+ *      @poseBlendShape: - Tensor -
  *          Pose blend shape of SMPL model, (N, 6890, 3).
  * 
  */
-xt::xarray<double> BlendShape::getPoseBlendShape() noexcept(false)
+torch::Tensor BlendShape::getPoseBlendShape() noexcept(false)
 {
-    xt::xarray<double> poseBlendShape;
+    torch::Tensor poseBlendShape;
 
-    if (__poseBlendShape.shape() == 
-        xt::xarray<double>::shape_type({BATCH_SIZE, VERTEX_NUM, 3})) {
-        poseBlendShape = __poseBlendShape;
+    if (m__poseBlendShape.sizes() == 
+        torch::IntArrayRef({BATCH_SIZE, VERTEX_NUM, 3})) {
+        poseBlendShape = m__poseBlendShape.clone().to(m__device);
     }
     else {
         throw smpl_error("BlendShape", "Failed to get pose blend hape!");
@@ -579,7 +629,7 @@ void BlendShape::blend() noexcept(false)
     // pose blend
     //
     try {
-        poseBlend();// save result in <__poseBlendShape> (N, 6890, 3).
+        poseBlend();// save result in <m__poseBlendShape> (N, 6890, 3).
     }
     catch(std::exception &e) {
         throw;
@@ -589,11 +639,13 @@ void BlendShape::blend() noexcept(false)
     // shape blend
     //
     try {
-        shapeBlend();// save result in <__shapeBlendShape> (N, 6890, 3).
+        shapeBlend();// save result in <m__shapeBlendShape> (N, 6890, 3).
     }
     catch(std::exception &e) {
         throw;
     }
+
+    return;
 }
 
 /**shapeBlend
@@ -619,13 +671,12 @@ void BlendShape::blend() noexcept(false)
  */
 void BlendShape::shapeBlend() noexcept(false)
 {
-    if (__shapeBlendBasis.shape() ==
-        xt::xarray<double>::shape_type({VERTEX_NUM, 3, SHAPE_BASIS_DIM})
-        && __beta.shape() ==
-        xt::xarray<double>::shape_type({BATCH_SIZE, SHAPE_BASIS_DIM})) {
-        __shapeBlendShape = 
-            xt::linalg::tensordot(__beta, __shapeBlendBasis, {1}, {2});
-            // (N, 6890, 3)
+    if (m__shapeBlendBasis.sizes() ==
+        torch::IntArrayRef({VERTEX_NUM, 3, SHAPE_BASIS_DIM})
+        && m__beta.sizes() ==
+        torch::IntArrayRef({BATCH_SIZE, SHAPE_BASIS_DIM})) {
+        m__shapeBlendShape = 
+            torch::tensordot(m__beta, m__shapeBlendBasis, {1}, {2});// (N, 6890, 3)
     }
     else {
         throw smpl_error("BlendShape", "Cannot blend shape-dependented shape!");
@@ -661,10 +712,10 @@ void BlendShape::poseBlend() noexcept(false)
     //
     // pose rotation and rest pose rotation
     //
-    if (__theta.shape() ==
-        xt::xarray<double>::shape_type({BATCH_SIZE, JOINT_NUM, 3})) {
+    if (m__theta.sizes() ==
+        torch::IntArrayRef({BATCH_SIZE, JOINT_NUM, 3})) {
         try {
-            __poseRot = rodrigues(__theta);// (N, 24, 3, 3) 
+            m__poseRot = rodrigues(m__theta);// (N, 24, 3, 3) 
         }
         catch(std::exception &e) {
             throw;
@@ -674,23 +725,26 @@ void BlendShape::poseBlend() noexcept(false)
         throw smpl_error("BlendShape", "Cannot blend pose-dependented shape!");;
     }
 
-    if (__restTheta.shape() == 
-        xt::xarray<double>::shape_type({BATCH_SIZE, JOINT_NUM, 3})) {
+    if (!m__restTheta.is_same(torch::Tensor())
+        && m__restTheta.sizes() == 
+        torch::IntArrayRef({BATCH_SIZE, JOINT_NUM, 3})) {
         try {
-            __restPoseRot = rodrigues(__restTheta);// (N, 24, 3, 3)            
+            m__restPoseRot = rodrigues(m__restTheta);// (N, 24, 3, 3)            
         }
         catch(std::exception &e) {
             throw;
         }
     }
     else {
-        __restPoseRot = xt::eye({BATCH_SIZE, JOINT_NUM, 3, 3});// (N, 24, 3, 3)
+        m__restPoseRot = torch::eye(3, m__device);// (3, 3)
+        m__restPoseRot = m__restPoseRot.expand(
+            {BATCH_SIZE, JOINT_NUM, 3, 3});// (N, 24, 3, 3)
     }
 
     //
     //  pose blend coefficients
     //
-    xt::xarray<double> poseBlendCoeffs;
+    torch::Tensor poseBlendCoeffs;
     try {
         poseBlendCoeffs = linRotMin();
     }
@@ -701,11 +755,10 @@ void BlendShape::poseBlend() noexcept(false)
     //
     // pose blend
     //
-    if (__poseBlendBasis.shape() == 
-        xt::xarray<double>::shape_type({VERTEX_NUM, 3, POSE_BASIS_DIM})) {
-        __poseBlendShape = 
-            xt::linalg::tensordot(poseBlendCoeffs, __poseBlendBasis, 
-                {1}, {2});// (N, 6890, 3)
+    if (m__poseBlendBasis.sizes() == 
+        torch::IntArrayRef({VERTEX_NUM, 3, POSE_BASIS_DIM})) {
+        m__poseBlendShape = torch::tensordot(
+            poseBlendCoeffs, m__poseBlendBasis, {1}, {2});// (N, 6890, 3)
     }
     else {
         throw smpl_error("BlendShape", "Cannot blend pose-dependented shape!");;
@@ -725,7 +778,7 @@ void BlendShape::poseBlend() noexcept(false)
  * Arguments
  * ----------
  * 
- *      @theta: - xarray -
+ *      @theta: - Tensor -
  *          pose axis-angle representations.
  *              Batch of pose or rest pose in axis-angle representations,
  *              (N, 24, 3).
@@ -733,7 +786,7 @@ void BlendShape::poseBlend() noexcept(false)
  * Return
  * ----------
  * 
- *      @rotation: - xarray -
+ *      @rotation: - Tensor -
  *          Batch of pose or rest pose rotation, (N, 24, 3, 3).
  * 
  * Notes
@@ -742,69 +795,79 @@ void BlendShape::poseBlend() noexcept(false)
  *      This function implements equation (1) in the paper.
  * 
  */
-xt::xarray<double> BlendShape::rodrigues(xt::xarray<double> theta)
+torch::Tensor BlendShape::rodrigues(torch::Tensor &theta)
     noexcept(false)
 {
-    if (theta.shape() !=
-        xt::xarray<double>::shape_type({BATCH_SIZE, 24, 3})) {
+    if (theta.sizes() !=
+        torch::IntArrayRef({BATCH_SIZE, 24, 3})) {
         throw smpl_error("BlendShape", "Cannot do arbitrary rotation!");
     }
-    // std::cout << theta << std::endl;
 
     //
     // rotation angles and axis
     //
-    xt::xarray<double> angles = xt::norm_l2(theta, {2});// (N, 24)
-    angles = xt::expand_dims(angles, 2);// (N, 24, 1)
-    xt::xarray<double> axes = theta / angles;// (N, 24, 3)
+    torch::Tensor angles = torch::norm(theta, 2, {2}, true);// (N, 24, 1)
+    torch::Tensor axes = theta / angles;// (N, 24, 3)
 
     //
     // skew symmetric matrices
     //
-    xt::xarray<double> zero = xt::zeros<double>(
-        {BATCH_SIZE_RAW, JOINT_NUM_RAW});// (N, 24)
-    xt::xarray<double> tiledSkew = xt::stack(
-        xt::xtuple(
-            zero,
-            -xt::view(axes, xt::all(), xt::all(), 2),
-            xt::view(axes, xt::all(), xt::all(), 1),
+    torch::Tensor zeros = torch::zeros({BATCH_SIZE, JOINT_NUM}, 
+        m__device);// (N, 24)
+    torch::Tensor skew = torch::stack({
+            zeros,
+            -TorchEx::indexing(axes, 
+                torch::IntList(), 
+                torch::IntList(), 
+                torch::IntList({2})
+            ),
+            TorchEx::indexing(axes, 
+                torch::IntList(), 
+                torch::IntList(), 
+                torch::IntList({1})
+            ),
 
-            xt::view(axes, xt::all(), xt::all(), 2),
-            zero,
-            -xt::view(axes, xt::all(), xt::all(), 0),
+            TorchEx::indexing(axes, 
+                torch::IntList(), 
+                torch::IntList(), 
+                torch::IntList({2})
+            ),
+            zeros,
+            -TorchEx::indexing(axes,
+                torch::IntList(),
+                torch::IntList(),
+                torch::IntList({0})
+            ),
 
-            -xt::view(axes, xt::all(), xt::all(), 1),
-            xt::view(axes, xt::all(), xt::all(), 0),
-            zero
-        ), 2); // (N, 24, 9)
-    xt::xarray<double> skew = xt::reshape_view(
-        tiledSkew, {BATCH_SIZE_RAW, JOINT_NUM_RAW, 3, 3});// (N, 24, 3, 3)
-    xt::xarray<double> skewSq;
-    try {
-        skewSq = XtensorEx::matmul(skew, skew);
-    }
-    catch(std::exception &e) {
-        throw;
-    }
+            -TorchEx::indexing(axes,
+                torch::IntList(),
+                torch::IntList(),
+                torch::IntList({1})
+            ),
+            TorchEx::indexing(axes,
+                torch::IntList(),
+                torch::IntList(),
+                torch::IntList({0})
+            ),
+            zeros
+        }, 2);// (N, 24, 9)
+    skew = torch::reshape(skew, 
+        {BATCH_SIZE, JOINT_NUM, 3, 3});// (N, 24, 3, 3)
 
     //
     // Rodrigues' formula
     //
-    xt::xarray<double> eye = xt::eye(
-        {BATCH_SIZE, JOINT_NUM, 3, 3});// (N, 24, 3, 3)
-    xt::xarray<double> sine = xt::sin(
-        xt::expand_dims(angles, 3)
-    );
-    sine = xt::broadcast(sine, 
-        {BATCH_SIZE_RAW, JOINT_NUM_RAW, 3, 3});// (N, 24, 3, 3)
-    xt::xarray<double> cosine = xt::cos(
-        xt::expand_dims(angles, 3)
-    );
-    cosine = xt::broadcast(cosine, 
-        {BATCH_SIZE_RAW, JOINT_NUM_RAW, 3, 3});// (N, 24, 3, 3)
-    xt::xarray<double> rotation = eye 
+    torch::Tensor eye = torch::eye(3, m__device);// (3, 3)
+    eye = eye.expand({BATCH_SIZE, JOINT_NUM, 3, 3});// (N, 24, 3, 3)
+    torch::Tensor sine = torch::sin(
+        torch::unsqueeze(angles, 3).expand({BATCH_SIZE, JOINT_NUM, 3, 3})
+    );// (N, 24, 3, 3)
+    torch::Tensor cosine = torch::cos(
+        torch::unsqueeze(angles, 3).expand({BATCH_SIZE, JOINT_NUM, 3, 3})
+    );// (N, 24, 3, 3)
+    torch::Tensor rotation = eye 
         + skew * sine 
-        + skewSq * (1 - cosine);// (N, 24, 3, 3)
+        + torch::matmul(skew, skew) * (1 - cosine);// (N, 24, 3, 3)
 
     return rotation;
 }
@@ -824,19 +887,19 @@ xt::xarray<double> BlendShape::rodrigues(xt::xarray<double> theta)
  * Return
  * ----------
  * 
- *      @poseBlendCoeffs: - xarray -
- *          Pose blend coefficients for combining pose blend basis.
+ *      @poseBlendCoeffs: - Tensor -
+ *          Pose blend coefficients for combining pose blend basis, (N, 207).
  * 
  */
-xt::xarray<double> BlendShape::linRotMin() noexcept(false)
+torch::Tensor BlendShape::linRotMin() noexcept(false)
 {
     //
     // unroll rotations
     //
-    xt::xarray<double> unPoseRot, unRestPoseRot;
+    torch::Tensor unPoseRot, unRestPoseRot;
     try {
-        unPoseRot = unroll(__poseRot);// (N, 216)
-        unRestPoseRot = unroll(__restPoseRot);// (N, 216)
+        unPoseRot = unroll(m__poseRot);// (N, 216)
+        unRestPoseRot = unroll(m__restPoseRot);// (N, 216)
     }
     catch(std::exception &e) {
         throw;
@@ -845,15 +908,19 @@ xt::xarray<double> BlendShape::linRotMin() noexcept(false)
     //
     // truncate rotations
     //
-    unPoseRot = xt::view(unPoseRot, 
-        xt::all(), xt::range(9, xt::placeholders::_));// (N, 207)
-    unRestPoseRot = xt::view(unRestPoseRot,
-        xt::all(), xt::range(9, xt::placeholders::_));// (N, 207)
-
+    unPoseRot = TorchEx::indexing(unPoseRot,
+        torch::IntList(),
+        torch::IntList({9, unPoseRot.size(1)})
+    );// (N, 207)
+    unRestPoseRot = TorchEx::indexing(unRestPoseRot,
+        torch::IntList(),
+        torch::IntList({9, unRestPoseRot.size(1)})
+    );// (N, 207)
+    
     //
     // pose blend coefficients
     //
-    xt::xarray<double> poseBlendCoeffs = unPoseRot - unRestPoseRot;// (N, 207)
+    torch::Tensor poseBlendCoeffs = unPoseRot - unRestPoseRot;// (N, 207)
 
     return poseBlendCoeffs;
 }
@@ -863,31 +930,32 @@ xt::xarray<double> BlendShape::linRotMin() noexcept(false)
  * Brief
  * ----------
  * 
+ *      Unroll rotation matrix into vector.
  * 
  * Arguments
  * ----------
  * 
- *      @rotation: - xarray -
+ *      @rotation: - Tensor -
  *          Pose or rest pose rotation to be unrolled, (N, 24, 3, 3).
  * 
  * Return
  * ----------
  * 
- *      @unRotation: - xarray -
+ *      @unRotation: - Tensor -
  *          Unrolled pose or rest pose rotation, (N, 216).
  * 
  * 
  */
-xt::xarray<double> BlendShape::unroll(xt::xarray<double> rotation) 
+torch::Tensor BlendShape::unroll(torch::Tensor &rotation) 
     noexcept(false)
 {
-    if (rotation.shape() !=
-        xt::xarray<double>::shape_type({BATCH_SIZE, JOINT_NUM, 3, 3})) {
+    if (rotation.sizes() !=
+        torch::IntArrayRef({BATCH_SIZE, JOINT_NUM, 3, 3})) {
         throw smpl_error("BlendShape", "Cannot unroll a rotation!");
     }
 
-    xt::xarray<double> unRotation(rotation);
-    unRotation.reshape({BATCH_SIZE, JOINT_NUM * 3 * 3});
+    torch::Tensor unRotation = torch::reshape(rotation, 
+        {BATCH_SIZE, JOINT_NUM * 3 * 3});
 
     return unRotation;
 }

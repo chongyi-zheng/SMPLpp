@@ -21,8 +21,8 @@
 },
 {
   "directory": "/home/yee/Documents/SMPL++/build",
-  "command": "/usr/bin/c++   -I/home/yee/Documents/SMPL++/include -isystem /usr/local/include/opencv4 -isystem /usr/local/include -I/usr/include/libdrm -isystem /usr/local/include/torch/csrc/api/include -isystem /usr/local/cuda-10.0/include  -g   -D_GLIBCXX_USE_CXX11_ABI=0 -std=c++11 -std=gnu++14 -o CMakeFiles/smplpp.out.dir/source/toolbox/XtensorEx.cpp.o -c /home/yee/Documents/SMPL++/source/toolbox/XtensorEx.cpp",
-  "file": "/home/yee/Documents/SMPL++/source/toolbox/XtensorEx.cpp"
+  "command": "/usr/bin/c++   -I/home/yee/Documents/SMPL++/include -isystem /usr/local/include/opencv4 -isystem /usr/local/include -I/usr/include/libdrm -isystem /usr/local/include/torch/csrc/api/include -isystem /usr/local/cuda-10.0/include  -g   -D_GLIBCXX_USE_CXX11_ABI=0 -std=c++11 -std=gnu++14 -o CMakeFiles/smplpp.out.dir/source/toolbox/TorchEx.cpp.o -c /home/yee/Documents/SMPL++/source/toolbox/TorchEx.cpp",
+  "file": "/home/yee/Documents/SMPL++/source/toolbox/TorchEx.cpp"
 },
 {
   "directory": "/home/yee/Documents/SMPL++/build",

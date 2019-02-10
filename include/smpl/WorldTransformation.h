@@ -31,7 +31,7 @@
 
 //===== INCLUDES ==============================================================
 
-#include <xtensor/xarray.hpp>
+#include <torch/torch.h>
 
 //===== EXTERNAL FORWARD DECLARATIONS =========================================
 
@@ -64,18 +64,21 @@ namespace smpl {
  * 
  * ATTRIBUTES:
  * 
- *      - __joints: <private>
+ *      - m__device: <private>
+ *          Torch device to run the module, could be CPUs or GPUs.
+ * 
+ *      - m__joints: <private>
  *          Joint locations of the deformed shape after regressing, (N, 24, 3).
  * 
- *      - __poseRot: <private>
+ *      - m__poseRot: <private>
  *          Rotations with respect to new pose by axis-angles
  *          representations, (N, 24, 3, 3).
  * 
- *      - __kineTree: <private>
+ *      - m__kineTree: <private>
  *          Hierarchy relation between joints, the root is at the belly button,
  *          (2, 24).
  * 
- *      - __transformations: <private>
+ *      - m__transformations: <private>
  *          World transformation expressed in homogeneous coordinates
  *          after eliminating effects of rest pose, (N, 24, 4, 4).
  * 
@@ -88,7 +91,7 @@ namespace smpl {
  *          Default constructor.
  * 
  *      - WorldTransformation: (overload) <public>
- *          Constructor to initialize kinematicTree.
+ *          Constructor to initialize kinematicTree and torch device.
  * 
  *      - WorldTransformation: (overload) <public>
  *          Copy constructor.
@@ -108,6 +111,9 @@ namespace smpl {
  *      %
  *          Getter and Setter
  *      %
+ *      - setDevice: <public>
+ *          Set the torch device.
+ * 
  *      - setJoint:
  *          Set joint locations of the deformed shape.
  * 
@@ -151,10 +157,12 @@ class WorldTransformation final
 
 private: // PIRVATE ATTRIBUTES
 
-    xt::xarray<double> __joints;
-    xt::xarray<double> __poseRot;
-    xt::xarray<uint32_t> __kineTree;
-    xt::xarray<double> __transformations;
+    torch::Device m__device;
+
+    torch::Tensor m__joints;
+    torch::Tensor m__poseRot;
+    torch::Tensor m__kineTree;
+    torch::Tensor m__transformations;
 
 protected: // PROTECTED ATTRIBUTES
 
@@ -163,11 +171,11 @@ public: // PUBLIC ATTRIBUTES
 private: // PRIVATE METHODS
 
     // %% Transformations %%
-    xt::xarray<double> localTransform(xt::xarray<double> poseRotHomo) 
+    torch::Tensor localTransform(torch::Tensor &poseRotHomo) 
         noexcept(false);
-    xt::xarray<double> globalTransform(xt::xarray<double> localTransformations)
+    torch::Tensor globalTransform(torch::Tensor &localTransformations)
         noexcept(false);
-    void relativeTransform(xt::xarray<double> globalTransformations)
+    void relativeTransform(torch::Tensor &globalTransformations)
         noexcept(false);
 
 protected: // PROTECTED METHODS
@@ -176,7 +184,8 @@ public: // PUBLIC METHODS
 
     // %% Constructor and Deconstructor %%
     WorldTransformation() noexcept(true);
-    WorldTransformation(xt::xarray<double> kineTree) noexcept(false);
+    WorldTransformation(torch::Tensor &kineTree, 
+        torch::Device &device) noexcept(false);
     WorldTransformation(const WorldTransformation &worldTransformation)
         noexcept(false);
     ~WorldTransformation() noexcept(true);
@@ -186,11 +195,13 @@ public: // PUBLIC METHODS
         const WorldTransformation &worldTransformation) noexcept(false);
 
     // %% Setter and Getter %%
-    void setJoint(xt::xarray<double> joints) noexcept(false);
-    void setPoseRotation(xt::xarray<double> poseRot) noexcept(false);
-    void setKinematicTree(xt::xarray<uint32_t> kineTree) noexcept(false);
+    void setDevice(const torch::Device &device) noexcept(false);
+    void setJoint(const torch::Tensor &joints) noexcept(false);
+    void setPoseRotation(const torch::Tensor &poseRot) noexcept(false);
+    void setKinematicTree(const torch::Tensor &kineTree) noexcept(false);
 
-    xt::xarray<double> getTransformation() noexcept(false);
+    torch::Tensor getTransformation() noexcept(false);
+    
     // %% Transformation wrapper %%
     void transform();
 

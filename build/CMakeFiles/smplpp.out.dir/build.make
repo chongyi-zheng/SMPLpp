@@ -153,28 +153,28 @@ CMakeFiles/smplpp.out.dir/source/toolbox/Tester.cpp.o.provides: CMakeFiles/smplp
 CMakeFiles/smplpp.out.dir/source/toolbox/Tester.cpp.o.provides.build: CMakeFiles/smplpp.out.dir/source/toolbox/Tester.cpp.o
 
 
-CMakeFiles/smplpp.out.dir/source/toolbox/XtensorEx.cpp.o: CMakeFiles/smplpp.out.dir/flags.make
-CMakeFiles/smplpp.out.dir/source/toolbox/XtensorEx.cpp.o: ../source/toolbox/XtensorEx.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/yee/Documents/SMPL++/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/smplpp.out.dir/source/toolbox/XtensorEx.cpp.o"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/smplpp.out.dir/source/toolbox/XtensorEx.cpp.o -c /home/yee/Documents/SMPL++/source/toolbox/XtensorEx.cpp
+CMakeFiles/smplpp.out.dir/source/toolbox/TorchEx.cpp.o: CMakeFiles/smplpp.out.dir/flags.make
+CMakeFiles/smplpp.out.dir/source/toolbox/TorchEx.cpp.o: ../source/toolbox/TorchEx.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/yee/Documents/SMPL++/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/smplpp.out.dir/source/toolbox/TorchEx.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/smplpp.out.dir/source/toolbox/TorchEx.cpp.o -c /home/yee/Documents/SMPL++/source/toolbox/TorchEx.cpp
 
-CMakeFiles/smplpp.out.dir/source/toolbox/XtensorEx.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/smplpp.out.dir/source/toolbox/XtensorEx.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/yee/Documents/SMPL++/source/toolbox/XtensorEx.cpp > CMakeFiles/smplpp.out.dir/source/toolbox/XtensorEx.cpp.i
+CMakeFiles/smplpp.out.dir/source/toolbox/TorchEx.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/smplpp.out.dir/source/toolbox/TorchEx.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/yee/Documents/SMPL++/source/toolbox/TorchEx.cpp > CMakeFiles/smplpp.out.dir/source/toolbox/TorchEx.cpp.i
 
-CMakeFiles/smplpp.out.dir/source/toolbox/XtensorEx.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/smplpp.out.dir/source/toolbox/XtensorEx.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/yee/Documents/SMPL++/source/toolbox/XtensorEx.cpp -o CMakeFiles/smplpp.out.dir/source/toolbox/XtensorEx.cpp.s
+CMakeFiles/smplpp.out.dir/source/toolbox/TorchEx.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/smplpp.out.dir/source/toolbox/TorchEx.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/yee/Documents/SMPL++/source/toolbox/TorchEx.cpp -o CMakeFiles/smplpp.out.dir/source/toolbox/TorchEx.cpp.s
 
-CMakeFiles/smplpp.out.dir/source/toolbox/XtensorEx.cpp.o.requires:
+CMakeFiles/smplpp.out.dir/source/toolbox/TorchEx.cpp.o.requires:
 
-.PHONY : CMakeFiles/smplpp.out.dir/source/toolbox/XtensorEx.cpp.o.requires
+.PHONY : CMakeFiles/smplpp.out.dir/source/toolbox/TorchEx.cpp.o.requires
 
-CMakeFiles/smplpp.out.dir/source/toolbox/XtensorEx.cpp.o.provides: CMakeFiles/smplpp.out.dir/source/toolbox/XtensorEx.cpp.o.requires
-	$(MAKE) -f CMakeFiles/smplpp.out.dir/build.make CMakeFiles/smplpp.out.dir/source/toolbox/XtensorEx.cpp.o.provides.build
-.PHONY : CMakeFiles/smplpp.out.dir/source/toolbox/XtensorEx.cpp.o.provides
+CMakeFiles/smplpp.out.dir/source/toolbox/TorchEx.cpp.o.provides: CMakeFiles/smplpp.out.dir/source/toolbox/TorchEx.cpp.o.requires
+	$(MAKE) -f CMakeFiles/smplpp.out.dir/build.make CMakeFiles/smplpp.out.dir/source/toolbox/TorchEx.cpp.o.provides.build
+.PHONY : CMakeFiles/smplpp.out.dir/source/toolbox/TorchEx.cpp.o.provides
 
-CMakeFiles/smplpp.out.dir/source/toolbox/XtensorEx.cpp.o.provides.build: CMakeFiles/smplpp.out.dir/source/toolbox/XtensorEx.cpp.o
+CMakeFiles/smplpp.out.dir/source/toolbox/TorchEx.cpp.o.provides.build: CMakeFiles/smplpp.out.dir/source/toolbox/TorchEx.cpp.o
 
 
 CMakeFiles/smplpp.out.dir/source/smpl/BlendShape.cpp.o: CMakeFiles/smplpp.out.dir/flags.make
@@ -303,7 +303,7 @@ smplpp_out_OBJECTS = \
 "CMakeFiles/smplpp.out.dir/source/definition/def.cpp.o" \
 "CMakeFiles/smplpp.out.dir/source/toolbox/Exception.cpp.o" \
 "CMakeFiles/smplpp.out.dir/source/toolbox/Tester.cpp.o" \
-"CMakeFiles/smplpp.out.dir/source/toolbox/XtensorEx.cpp.o" \
+"CMakeFiles/smplpp.out.dir/source/toolbox/TorchEx.cpp.o" \
 "CMakeFiles/smplpp.out.dir/source/smpl/BlendShape.cpp.o" \
 "CMakeFiles/smplpp.out.dir/source/smpl/JointRegression.cpp.o" \
 "CMakeFiles/smplpp.out.dir/source/smpl/LinearBlendSkinning.cpp.o" \
@@ -317,7 +317,7 @@ smplpp.out: CMakeFiles/smplpp.out.dir/source/main.cpp.o
 smplpp.out: CMakeFiles/smplpp.out.dir/source/definition/def.cpp.o
 smplpp.out: CMakeFiles/smplpp.out.dir/source/toolbox/Exception.cpp.o
 smplpp.out: CMakeFiles/smplpp.out.dir/source/toolbox/Tester.cpp.o
-smplpp.out: CMakeFiles/smplpp.out.dir/source/toolbox/XtensorEx.cpp.o
+smplpp.out: CMakeFiles/smplpp.out.dir/source/toolbox/TorchEx.cpp.o
 smplpp.out: CMakeFiles/smplpp.out.dir/source/smpl/BlendShape.cpp.o
 smplpp.out: CMakeFiles/smplpp.out.dir/source/smpl/JointRegression.cpp.o
 smplpp.out: CMakeFiles/smplpp.out.dir/source/smpl/LinearBlendSkinning.cpp.o
@@ -380,7 +380,7 @@ CMakeFiles/smplpp.out.dir/requires: CMakeFiles/smplpp.out.dir/source/main.cpp.o.
 CMakeFiles/smplpp.out.dir/requires: CMakeFiles/smplpp.out.dir/source/definition/def.cpp.o.requires
 CMakeFiles/smplpp.out.dir/requires: CMakeFiles/smplpp.out.dir/source/toolbox/Exception.cpp.o.requires
 CMakeFiles/smplpp.out.dir/requires: CMakeFiles/smplpp.out.dir/source/toolbox/Tester.cpp.o.requires
-CMakeFiles/smplpp.out.dir/requires: CMakeFiles/smplpp.out.dir/source/toolbox/XtensorEx.cpp.o.requires
+CMakeFiles/smplpp.out.dir/requires: CMakeFiles/smplpp.out.dir/source/toolbox/TorchEx.cpp.o.requires
 CMakeFiles/smplpp.out.dir/requires: CMakeFiles/smplpp.out.dir/source/smpl/BlendShape.cpp.o.requires
 CMakeFiles/smplpp.out.dir/requires: CMakeFiles/smplpp.out.dir/source/smpl/JointRegression.cpp.o.requires
 CMakeFiles/smplpp.out.dir/requires: CMakeFiles/smplpp.out.dir/source/smpl/LinearBlendSkinning.cpp.o.requires

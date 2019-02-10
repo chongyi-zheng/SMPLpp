@@ -30,13 +30,9 @@
 //===== INCLUDES ==============================================================
 
 //----------
-#include <xtensor/xview.hpp>
-#include <xtensor/xslice.hpp>
-#include <xtensor-blas/xlinalg.hpp>
-//----------
 #include "definition/def.h"
 #include "toolbox/Exception.h"
-#include "toolbox/XtensorEx.hpp"
+#include "toolbox/TorchEx.hpp"
 #include "smpl/WorldTransformation.h"
 //----------
 
@@ -72,10 +68,11 @@ namespace smpl {
  * 
  */
 WorldTransformation::WorldTransformation() noexcept(true) :
-    __joints(),
-    __poseRot(),
-    __kineTree(),
-    __transformations()
+    m__device(torch::kCPU),
+    m__joints(),
+    m__poseRot(),
+    m__kineTree(),
+    m__transformations()
 {
 }
 
@@ -84,29 +81,42 @@ WorldTransformation::WorldTransformation() noexcept(true) :
  * Brief
  * ----------
  * 
- *      Constructor to initialize kinematic tree.
+ *      Constructor to initialize kinematic tree and torch device.
  * 
  * Arguments
  * ----------
  * 
- *      @kineTree: - xarray -
- *          Hierarchical relation between joints, the root is at the belly button,
- *          (2, 24).
+ *      @kineTree: - Tensor -
+ *          Hierarchical relation between joints, the root is at the belly 
+ *          button, (2, 24).
+ * 
+ *      @device: - Device -
+ *          Torch device to run the module, CPUs or GPUs.
  * 
  * Return
  * ----------
  * 
  * 
  */
-WorldTransformation::WorldTransformation(xt::xarray<double> kineTree) 
+WorldTransformation::WorldTransformation(
+    torch::Tensor &kineTree, torch::Device &device) 
     noexcept(false) :
-    __joints(),
-    __poseRot(),
-    __transformations()
+    m__device(torch::kCPU),
+    m__joints(),
+    m__poseRot(),
+    m__transformations()
 {
-    if (kineTree.shape() == 
-        xt::xarray<double>::shape_type({2, JOINT_NUM})) {
-        __kineTree = kineTree;
+    if (device.has_index()) {
+        m__device = device;
+    }
+    else {
+        throw smpl_error("WorldTransformation", 
+            "Failed to fetch device index!");
+    }
+
+    if (kineTree.sizes() == 
+        torch::IntArrayRef({2, JOINT_NUM})) {
+        m__kineTree = kineTree.clone().to(m__device);
     }
     else {
         throw smpl_error("WorldTransformation", 
@@ -124,7 +134,7 @@ WorldTransformation::WorldTransformation(xt::xarray<double> kineTree)
  * Arguments
  * ----------
  * 
- *      @worldTransformation: - xarray -
+ *      @worldTransformation: - Tensor -
  *          The <WorldTransformation> instantiation to copy with.
  * 
  * Return
@@ -134,7 +144,8 @@ WorldTransformation::WorldTransformation(xt::xarray<double> kineTree)
  */
 WorldTransformation::WorldTransformation(
     const WorldTransformation &worldTransformation) noexcept(false) :
-    __transformations()
+    m__device(torch::kCPU),
+    m__transformations()
 {
     try {
         *this = worldTransformation;
@@ -175,13 +186,13 @@ WorldTransformation::~WorldTransformation() noexcept(true)
  * Arguments
  * ----------
  * 
- *      @worldTransformation: - xarray -
+ *      @worldTransformation: - Tensor -
  *          The <WorldTransformation> instantiation to copy with.
  * 
  * Return
  * ----------
  * 
- *      @*this: - xarray -
+ *      @*this: - Tensor -
  *          Currrent instantiation.
  * 
  */
@@ -191,26 +202,34 @@ WorldTransformation &WorldTransformation::operator=(
     //
     // hard copy
     //
-    if (worldTransformation.__joints.shape() == 
-        xt::xarray<double>::shape_type({BATCH_SIZE, JOINT_NUM, 3})) {
-        __joints = worldTransformation.__joints;
+    if (worldTransformation.m__device.has_index()) {
+        m__device = worldTransformation.m__device;
+    }
+    else {
+        throw smpl_error("WorldTransformation", 
+            "Failed to fetch device index!");
+    }
+
+    if (worldTransformation.m__joints.sizes() == 
+        torch::IntArrayRef({BATCH_SIZE, JOINT_NUM, 3})) {
+        m__joints = worldTransformation.m__joints.clone().to(m__device);
     }
     else {
         throw smpl_error("WorldTransformation", "Failed to copy joints");
     }
 
-    if (worldTransformation.__poseRot.shape() ==
-        xt::xarray<double>::shape_type({BATCH_SIZE, JOINT_NUM, 3, 3})) {
-        __poseRot = worldTransformation.__poseRot;
+    if (worldTransformation.m__poseRot.sizes() ==
+        torch::IntArrayRef({BATCH_SIZE, JOINT_NUM, 3, 3})) {
+        m__poseRot = worldTransformation.m__poseRot.clone().to(m__device);
     }
     else {
         throw smpl_error("WorldTransformation", 
             "Failed to copy pose rotations");
     }
 
-    if (worldTransformation.__kineTree.shape() ==
-        xt::xarray<double>::shape_type({2, JOINT_NUM})) {
-        __kineTree = worldTransformation.__kineTree;
+    if (worldTransformation.m__kineTree.sizes() ==
+        torch::IntArrayRef({2, JOINT_NUM})) {
+        m__kineTree = worldTransformation.m__kineTree.clone().to(m__device);
     }
     else {
         throw smpl_error("WorldTransformation",
@@ -220,12 +239,43 @@ WorldTransformation &WorldTransformation::operator=(
     //
     // soft copy
     //
-    if (worldTransformation.__transformations.shape() == 
-        xt::xarray<double>::shape_type({BATCH_SIZE, VERTEX_NUM, 4, 4})) {
-        __transformations = worldTransformation.__transformations;
+    if (worldTransformation.m__transformations.sizes() == 
+        torch::IntArrayRef({BATCH_SIZE, VERTEX_NUM, 4, 4})) {
+        m__transformations = worldTransformation.m__transformations.clone().to(
+            m__device);
     }
 
     return *this;
+}
+
+/**setDevice
+ * 
+ * Brief
+ * ----------
+ * 
+ *      Set the torch device.
+ * 
+ * Arguments
+ * ----------
+ * 
+ *      @device: - const Device & -
+ *          The torch device to be used.
+ * 
+ * Return
+ * ----------
+ * 
+ */
+void WorldTransformation::setDevice(
+    const torch::Device &device) noexcept(false)
+{
+    if (device.has_index()) {
+        m__device = device;
+    }
+    else {
+        throw smpl_error("WorldTransformation", "Failed to fetch device index!");
+    }
+
+    return;
 }
 
 /**setJoint
@@ -238,7 +288,7 @@ WorldTransformation &WorldTransformation::operator=(
  * Arguments
  * ----------
  * 
- *      @joints: - xarray -
+ *      @joints: - const Tensor & -
  *          Joint locations of the deformed shape after regressing, (N, 24, 3).
  * 
  * Return
@@ -246,11 +296,11 @@ WorldTransformation &WorldTransformation::operator=(
  * 
  * 
  */
-void WorldTransformation::setJoint(xt::xarray<double> joints) noexcept(false)
+void WorldTransformation::setJoint(const torch::Tensor &joints) noexcept(false)
 {
-    if (joints.shape() == 
-        xt::xarray<double>::shape_type({BATCH_SIZE, JOINT_NUM, 3})) {
-        __joints = joints;
+    if (joints.sizes() == 
+        torch::IntArrayRef({BATCH_SIZE, JOINT_NUM, 3})) {
+        m__joints = joints.clone().to(m__device);
     }
     else {
         throw smpl_error("WorldTransformation", "Failed to set joints");
@@ -269,7 +319,7 @@ void WorldTransformation::setJoint(xt::xarray<double> joints) noexcept(false)
  * Arguments
  * ----------
  * 
- *      @poseRot: - xarray -
+ *      @poseRot: - const Tensor & -
  *          Rotations with respect to new pose by axis-angles
  *          representations, (N, 24, 3, 3).
  * 
@@ -278,12 +328,12 @@ void WorldTransformation::setJoint(xt::xarray<double> joints) noexcept(false)
  * 
  * 
  */
-void WorldTransformation::setPoseRotation(xt::xarray<double> poseRot) 
+void WorldTransformation::setPoseRotation(const torch::Tensor &poseRot) 
     noexcept(false)
 {
-    if (poseRot.shape() ==
-        xt::xarray<double>::shape_type({BATCH_SIZE, JOINT_NUM, 3, 3})) {
-        __poseRot = poseRot;
+    if (poseRot.sizes() ==
+        torch::IntArrayRef({BATCH_SIZE, JOINT_NUM, 3, 3})) {
+        m__poseRot = poseRot.clone().to(m__device);
     }
     else {
         throw smpl_error("WorldTransformation", 
@@ -303,7 +353,7 @@ void WorldTransformation::setPoseRotation(xt::xarray<double> poseRot)
  * Arguments
  * ----------
  * 
- *      @kineTree: - xarray -
+ *      @kineTree: - const Tensor & -
  *          Hierarchical relation between joints, the root is at the belly button,
  *          (2, 24).
  * 
@@ -312,12 +362,12 @@ void WorldTransformation::setPoseRotation(xt::xarray<double> poseRot)
  * 
  * 
  */
-void WorldTransformation::setKinematicTree(xt::xarray<uint32_t> kineTree) 
+void WorldTransformation::setKinematicTree(const torch::Tensor &kineTree) 
     noexcept(false)
 {
-    if (kineTree.shape() == 
-        xt::xarray<uint32_t>::shape_type({2, JOINT_NUM})) {
-        __kineTree = kineTree;
+    if (kineTree.sizes() == 
+        torch::IntArrayRef({2, JOINT_NUM})) {
+        m__kineTree = kineTree.clone().to(m__device);
     }
     else {
         throw smpl_error("WorldTransformation", 
@@ -341,18 +391,18 @@ void WorldTransformation::setKinematicTree(xt::xarray<uint32_t> kineTree)
  * Return
  * ----------
  * 
- *      @transformation: - xarray -
+ *      @transformation: - const Tensor & -
  *          World transformation expressed in homogeneous coordinates
  *          after eliminating effects of rest pose, (N, 24, 4, 4).
  * 
  */
-xt::xarray<double> WorldTransformation::getTransformation() noexcept(false)
+torch::Tensor WorldTransformation::getTransformation() noexcept(false)
 {
-    xt::xarray<double> transformation;
+    torch::Tensor transformation;
 
-    if (__transformations.shape() == 
-        xt::xarray<double>::shape_type({BATCH_SIZE, JOINT_NUM, 4, 4})) {
-        transformation = __transformations;
+    if (m__transformations.sizes() == 
+        torch::IntArrayRef({BATCH_SIZE, JOINT_NUM, 4, 4})) {
+        transformation = m__transformations.clone().to(m__device);
     }
 
     return transformation;
@@ -388,15 +438,15 @@ void WorldTransformation::transform() noexcept(false)
     //
     // rotations in homogeneous coordinates
     //
-    auto zeros = xt::zeros<double>(
-        {BATCH_SIZE_RAW, JOINT_NUM_RAW, 1, 3});// (N, 24, 1, 3)
-    xt::xarray<double> poseRotHomo = xt::concatenate(
-        xt::xtuple(__poseRot, zeros), 2);// (N, 24, 4, 3)
+    torch::Tensor zeros = torch::zeros(
+        {BATCH_SIZE, JOINT_NUM, 1, 3}, m__device);// (N, 24, 1, 3)
+    torch::Tensor poseRotHomo = torch::cat(
+        {m__poseRot, zeros}, 2);// (N, 24, 4, 3)
 
     //
     // local transformation
     //
-    xt::xarray<double> localTransformations;
+    torch::Tensor localTransformations;
     try {
         localTransformations = localTransform(poseRotHomo);
     }
@@ -407,7 +457,7 @@ void WorldTransformation::transform() noexcept(false)
     //
     // global transformation
     //
-    xt::xarray<double> globalTransformations;
+    torch::Tensor globalTransformations;
     try {
         globalTransformations = globalTransform(localTransformations);
     }
@@ -438,14 +488,14 @@ void WorldTransformation::transform() noexcept(false)
  * Arguments
  * ----------
  * 
- *      @poseRotHomo: - xarray -
+ *      @poseRotHomo: - Tensor -
  *          Relative rotation denoted by axis-angles representations in
  *          homogeneous coordinates,, (N, 24, 4, 3).
  * 
  * Return
  * ----------
  * 
- *      @localTransformations: - xarray -
+ *      @localTransformations: - Tensor -
  *          Local transformations in each joint local coordinate but expressed
  *          by global coordinates, (N, 24, 4, 4).
  * 
@@ -466,38 +516,45 @@ void WorldTransformation::transform() noexcept(false)
  *          t21 = j21 - j19, t22 = j22 - j20, t23 = j23 - j21.
  * 
  */
-xt::xarray<double> WorldTransformation::localTransform(
-    xt::xarray<double> poseRotHomo) noexcept(false)
+torch::Tensor WorldTransformation::localTransform(
+    torch::Tensor &poseRotHomo) noexcept(false)
 {
-    if (poseRotHomo.shape() !=
-        xt::xarray<double>::shape_type({BATCH_SIZE, JOINT_NUM, 4, 3})) {
+    if (poseRotHomo.sizes() !=
+        torch::IntArrayRef({BATCH_SIZE, JOINT_NUM, 4, 3})) {
         throw smpl_error("WorldTransformation", 
             "Cannot transform bones locally!");
     }
 
-    std::array<xt::xarray<double>, 24> translations;
-    translations[0] = xt::view(__joints, xt::all(), 0, xt::all());
+    std::vector<torch::Tensor> translations;
+    translations.push_back(
+        TorchEx::indexing(m__joints, 
+            torch::IntList(),
+            torch::IntList({0}),
+            torch::IntList())
+    );// [0, (N, 3)]
 
-    size_t ancestor;
-    xt::xarray<double> translation;
-    for (size_t i = 1; i < JOINT_NUM; i++) {
-        ancestor = (size_t)__kineTree(0, i);
-        translation = xt::view(__joints, xt::all(), i, xt::all()) -
-            xt::view(__joints, xt::all(), ancestor, xt::all());// (N, 3)
-        translations[i] = translation;// [i, (N, 3)]
+    torch::Tensor ancestor;
+    torch::Tensor translation;
+    for (int64_t i = 1; i < JOINT_NUM; i++) {
+        ancestor = TorchEx::indexing(m__kineTree,
+            torch::IntList({0}), torch::IntList({i})).toType(torch::kLong);
+        translation = TorchEx::indexing(m__joints, 
+            torch::IntList(), 
+            torch::IntList({i}), 
+            torch::IntList()) - torch::index_select(m__joints, 
+            1, ancestor).squeeze(1);// (N, 3)
+        translations.push_back(translation);// [i, (N, 3)]
     }
-    auto tuple = XtensorEx::array2tuple(translations);
+    torch::Tensor localTranslations = torch::stack(
+        translations, 1);// (N, 24, 3)
+    localTranslations = torch::unsqueeze(localTranslations, 3);// (N, 24, 3, 1)
 
-    xt::xarray<double> localTranslations = xt::stack(
-        std::move(tuple), 1);// (N, 24, 3)
-    localTranslations = xt::expand_dims(localTranslations, 3);// (N, 24, 3, 1)
-
-    xt::xarray<double> ones = xt::ones<double>(
-        {BATCH_SIZE_RAW, JOINT_NUM_RAW, 1, 1});// (N, 24, 1, 1)
-    xt::xarray<double> localTransformationsHomo = xt::concatenate(
-        xt::xtuple(localTranslations, ones), 2);// (N, 24, 4, 1)
-    xt::xarray<double> localTransformations = xt::concatenate(
-        xt::xtuple(poseRotHomo, localTransformationsHomo), 3);// (N, 24, 4, 4)
+    torch::Tensor ones = torch::ones(
+        {BATCH_SIZE, JOINT_NUM, 1, 1}, m__device);// (N, 24, 1, 1)
+    torch::Tensor localTransformationsHomo = torch::cat(
+        {localTranslations, ones}, 2);// (N, 24, 4, 1)
+    torch::Tensor localTransformations = torch::cat(
+        {poseRotHomo, localTransformationsHomo}, 3);// (N, 24, 4, 4)
 
     return localTransformations;
 }
@@ -511,14 +568,14 @@ xt::xarray<double> WorldTransformation::localTransform(
  * Arguments
  * ----------
  * 
- *      @localTransformations: - xarray -
+ *      @localTransformations: - Tensor -
  *          Local transformations in each joint local coordinate but expressed
  *          by global coordinates, (N, 24, 4, 4).
  * 
  * Return
  * ----------
  * 
- *      @globalTransformations: - xarray -
+ *      @globalTransformations: - Tensor -
  *          Global transformation of each bone, (N, 24, 4, 4).
  * 
  * Notes
@@ -547,43 +604,42 @@ xt::xarray<double> WorldTransformation::localTransform(
  *          A23 = A21Q23 = Q0Q3Q6Q9Q14Q17Q19Q21Q23.
  * 
  */
-xt::xarray<double> WorldTransformation::globalTransform(
-    xt::xarray<double> localTransformations) noexcept(false)
+torch::Tensor WorldTransformation::globalTransform(
+    torch::Tensor &localTransformations) noexcept(false)
 {
-    if (localTransformations.shape() != 
-        xt::xarray<double>::shape_type({BATCH_SIZE, JOINT_NUM, 4, 4})) {
+    if (localTransformations.sizes() != 
+        torch::IntArrayRef({BATCH_SIZE, JOINT_NUM, 4, 4})) {
         throw smpl_error("WorldTransformations", 
             "Cannot transform bones globally!");
     }
 
-    std::array<xt::xarray<double>, 24> transformations;
-    transformations[0] = xt::view(localTransformations, 
-        xt::all(), 0, xt::all(), xt::all());// [0, (N, 4, 4)]
+    std::vector<torch::Tensor> transformations;
+    transformations.push_back(
+        TorchEx::indexing(localTransformations,
+            torch::IntList(),
+            torch::IntList({0}),
+            torch::IntList(),
+            torch::IntList())
+    );// [0, (N, 4, 4)]
 
-    size_t ancestor;
-
-    xt::xarray<double> transformation;
-    xt::xarray<double> globalSlice, localSlice;
-    for (size_t i = 1; i < JOINT_NUM; i++) {
-        ancestor = (size_t)__kineTree(0, i);
-        globalSlice = transformations[ancestor];// (N, 4, 4)
-        localSlice = xt::view(localTransformations, 
-            xt::all(), i, xt::all(), xt::all());// (N, 4, 4)
-
-        try {
-            transformation = XtensorEx::matmul(
-                globalSlice, localSlice);// (N, 4, 4)
-        }
-        catch(std::exception &e) {
-            throw;
-        }
-        
-        transformations[i] = transformation;// [i, (N, 4, 4)]
+    torch::Tensor ancestor;
+    torch::Tensor transformation;
+    torch::Tensor globalSlice, localSlice;
+    for (int64_t i = 1; i < JOINT_NUM; i++) {
+        ancestor = TorchEx::indexing(m__kineTree, 
+            torch::IntArrayRef({0}), torch::IntArrayRef({i})).toType(torch::kLong);
+        transformation = torch::matmul(
+            transformations[*(ancestor.to(torch::kCPU).data<int64_t>())],
+            TorchEx::indexing(localTransformations,
+                torch::IntList(),
+                torch::IntList({i}),
+                torch::IntList(),
+                torch::IntList())
+        );
+        transformations.push_back(transformation);// [i, (N, 4, 4)]
     }
-    auto tuple = XtensorEx::array2tuple(transformations);
-
-    xt::xarray<double> globalTransformations = xt::stack(
-        std::move(tuple), 1);// (N, 24, 4, 4)
+    torch::Tensor globalTransformations = torch::stack(
+        transformations, 1);// (N, 24, 4, 4)
 
     return globalTransformations;
 }
@@ -598,7 +654,7 @@ xt::xarray<double> WorldTransformation::globalTransform(
  * Arguments
  * ----------
  * 
- *      @globalTransformations: - xarray -
+ *      @globalTransformations: - Tensor -
  *          Global transformation of each bone, (N, 24, 4, 4).
  * 
  * 
@@ -634,37 +690,35 @@ xt::xarray<double> WorldTransformation::globalTransform(
  * 
  */
 void WorldTransformation::relativeTransform(
-    xt::xarray<double> globalTransformations) noexcept(false)
+    torch::Tensor &globalTransformations) noexcept(false)
 {
-    if (globalTransformations.shape() != 
-        xt::xarray<double>::shape_type({BATCH_SIZE, JOINT_NUM, 4, 4})) {
+    if (globalTransformations.sizes() != 
+        torch::IntArrayRef({BATCH_SIZE, JOINT_NUM, 4, 4})) {
         throw smpl_error("WorldTransformation", 
             "Cannot transform bones relatively!");
     }
 
-    xt::xarray<double> globalSlice = xt::view(
-        globalTransformations, 
-        xt::all(), 
-        xt::all(), 
-        xt::range(0, 3), 
-        xt::range(0, 3)
-    );// (N, 24, 3, 3)
-    xt::xarray<double> augJoints = xt::expand_dims(
-        __joints, 3);// (N, 24, 3, 1)
-    xt::xarray<double> eliminated = XtensorEx::matmul(
-        globalSlice, augJoints);// (N, 24, 3, 1)
-    xt::xarray<double> zeros = xt::zeros<double>(
-        {BATCH_SIZE_RAW, JOINT_NUM_RAW, 1, 1});// (N, 24, 1, 1)
-    xt::xarray<double> eliminatedHomo = xt::concatenate(
-        xt::xtuple(eliminated, zeros), 2);// (N, 24, 4, 1)
-    zeros = xt::zeros<double>(
-        {BATCH_SIZE_RAW, JOINT_NUM_RAW, 4, 3});// (N, 24, 4, 3)
-    eliminatedHomo = xt::concatenate(
-        xt::xtuple(zeros, eliminatedHomo), 3);// (N, 24, 4, 4)
-    xt::xarray<double> relativeTransformtions = 
+    torch::Tensor eliminated = torch::matmul(
+        TorchEx::indexing(globalTransformations,
+            torch::IntList(),
+            torch::IntList(),
+            torch::IntList({0, 3}),
+            torch::IntList({0, 3})
+        ),
+        torch::unsqueeze(m__joints, 3)
+    );// (N, 24, 3, 1)
+    torch::Tensor zeros = torch::zeros(
+        {BATCH_SIZE, JOINT_NUM, 1, 1}, m__device);// (N, 24, 1, 1)
+    torch::Tensor eliminatedHomo = torch::cat(
+        {eliminated, zeros}, 2);// (N, 24, 4, 1)
+    zeros = torch::zeros(
+        {BATCH_SIZE, JOINT_NUM, 4, 3}, m__device);// (N, 24, 4, 3)
+    eliminatedHomo = torch::cat(
+        {zeros, eliminatedHomo}, 3);// (N, 24, 4, 4)
+    torch::Tensor relativeTransformtions = 
         globalTransformations - eliminatedHomo;// (N, 24, 4, 4)
 
-    __transformations = relativeTransformtions;
+    m__transformations = relativeTransformtions;
 
     return;
 }

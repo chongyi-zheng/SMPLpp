@@ -62,7 +62,7 @@ namespace smpl {
  * 
  * ATTRIBUTES:
  * 
- *      - __singleton: <private>
+ *      - mm__singleton: <private>
  *          The only instantiation.
  * 
  * METHODS:
@@ -106,7 +106,7 @@ class Singleton final
 
 private: // PRIVATE ATTRIBUTES
 
-    static T *__singleton;
+    static T *mm__singleton;
 
 protected: // PROTECTED ATTRIBUTES
 
@@ -135,7 +135,7 @@ public: // PUBLIC METHODS
 //===== INTERNAL AFTERWARDS DECLARATIONS ======================================
 
 template <class T>
-T *Singleton<T>::__singleton = nullptr;
+T *Singleton<T>::mm__singleton = nullptr;
 
 //===== CLASS IMPLEMENTATIONS =================================================
 
@@ -250,18 +250,18 @@ Singleton<T> &Singleton<T>::operator=(const Singleton<T> &singleton)
  * Return
  * ----------
  * 
- *      @__singleton:
+ *      @mm__singleton:
  *          The only instantiation.
  * 
  */
 template <class T>
 T *Singleton<T>::get() noexcept(true)
 {
-    if (!__singleton) {
-        __singleton = new T;
+    if (!mm__singleton) {
+        mm__singleton = new T;
     }
 
-    return __singleton;
+    return mm__singleton;
 }
 
 /**destroy
@@ -283,8 +283,8 @@ T *Singleton<T>::get() noexcept(true)
 template <class T>
 void Singleton<T>::destroy() noexcept(true)
 {
-    if (__singleton) {
-        delete __singleton;
+    if (mm__singleton) {
+        delete mm__singleton;
     }
 
     return;

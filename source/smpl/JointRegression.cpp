@@ -30,9 +30,6 @@
 //===== INCLUDES ==============================================================
 
 //----------
-#include <xtensor/xarray.hpp>
-#include <xtensor-blas/xlinalg.hpp>
-//----------
 #include "definition/def.h"
 #include "toolbox/Exception.h"
 #include "smpl/JointRegression.h"
@@ -70,12 +67,13 @@ namespace smpl {
  * 
  */
 JointRegression::JointRegression() noexcept(true) :
-    __restShape(),
-    __shapeBlendShape(),
-    __poseBlendShape(),
-    __templateRestShape(),
-    __joints(),
-    __jointRegressor()
+    m__device(torch::kCPU),
+    m__restShape(),
+    m__shapeBlendShape(),
+    m__poseBlendShape(),
+    m__templateRestShape(),
+    m__joints(),
+    m__jointRegressor()
 {
 }
 
@@ -84,41 +82,53 @@ JointRegression::JointRegression() noexcept(true) :
  * Brief
  * ----------
  * 
- *      Constructor to initialize joint regressor and template shape.
+ *      Constructor to initialize joint regressor, template shape, and torch 
+ *      device.
  * 
  * Arguments
  * ----------
  * 
- *      @jointRegressor: - xarray -
+ *      @jointRegressor: - Tensor -
  *          The joint coefficients, (24, 6890).
  * 
- *      @templateRestShape: - xarray -
+ *      @templateRestShape: - Tensor -
  *          The template shape in rest pose, (6890, 3).
+ * 
+ *      @device: - Device -
+ *          Torch device to run the module, CPUs or GPUs.
  * 
  * Return
  * ----------
  * 
  * 
  */
-JointRegression::JointRegression(xt::xarray<double> jointRegressor,
-    xt::xarray<double> templateRestShape) noexcept(false) :
-    __restShape(),
-    __shapeBlendShape(),
-    __poseBlendShape(),
-    __joints()
+JointRegression::JointRegression(torch::Tensor &jointRegressor,
+    torch::Tensor &templateRestShape, torch::Device &device) noexcept(false) :
+    m__device(torch::kCPU),
+    m__restShape(),
+    m__shapeBlendShape(),
+    m__poseBlendShape(),
+    m__joints()
 {
-    if (jointRegressor.shape() == 
-        xt::xarray<double>::shape_type({JOINT_NUM, VERTEX_NUM})) {
-        __jointRegressor = jointRegressor;
+    if (device.has_index()) {
+        m__device = device;
+    }
+    else {
+        throw smpl_error("JointRegression", "Failed to fetch device index!");
+    }
+
+    if (jointRegressor.sizes() == 
+        torch::IntArrayRef({JOINT_NUM, VERTEX_NUM})) {
+        m__jointRegressor = jointRegressor.clone().to(m__device);
     }
     else {
         throw smpl_error("JointRegression", 
             "Failed to initialize joint regressor!");
     }
 
-    if (templateRestShape.shape() ==
-        xt::xarray<double>::shape_type({VERTEX_NUM, 3})) {
-        __templateRestShape = templateRestShape;
+    if (templateRestShape.sizes() ==
+        torch::IntArrayRef({VERTEX_NUM, 3})) {
+        m__templateRestShape = templateRestShape.clone().to(m__device);
     }
     else {
         throw smpl_error("JointRegression", 
@@ -136,7 +146,7 @@ JointRegression::JointRegression(xt::xarray<double> jointRegressor,
  * Arguments
  * ----------
  * 
- *      @jointRegression: - xarray -
+ *      @jointRegression: - Tensor -
  *          The <JointRegression> instantiation to copy with.
  * 
  * Return
@@ -146,8 +156,9 @@ JointRegression::JointRegression(xt::xarray<double> jointRegressor,
  */
 JointRegression::JointRegression(const JointRegression &jointRegression)
     noexcept(false) :
-    __restShape(),
-    __joints()
+    m__device(torch::kCPU),
+    m__restShape(),
+    m__joints()
 {
     try {
         *this = jointRegression;
@@ -187,13 +198,13 @@ JointRegression::~JointRegression() noexcept(true)
  * Arguments
  * ----------
  * 
- *      @jointRegression: - xarray -
+ *      @jointRegression: - Tensor -
  *          The <JointRegression> instantiation to copy with.
  * 
  * Return
  * ----------
  * 
- *      @*this: - xarray -
+ *      @*this: - Tensor -
  *          Current instantiation.
  * 
  */
@@ -203,33 +214,44 @@ JointRegression &JointRegression::operator=(
     //
     // hard copy
     //
-    if (jointRegression.__shapeBlendShape.shape()
-        == xt::xarray<double>::shape_type({BATCH_SIZE, VERTEX_NUM, 3})) {
-        __shapeBlendShape = jointRegression.__shapeBlendShape;
+    if (jointRegression.m__device.has_index()) {
+        m__device = jointRegression.m__device;
+    }
+    else {
+        throw smpl_error("JointRegression", "Failed to fetch device index!");
+    }
+
+    if (jointRegression.m__shapeBlendShape.sizes() == 
+        torch::IntArrayRef({BATCH_SIZE, VERTEX_NUM, 3})) {
+        m__shapeBlendShape = jointRegression.m__shapeBlendShape.clone().to(
+            m__device);
     }
     else {
         throw smpl_error("JointRegression", "Failed to copy shape blend shape!");
     }
 
-    if (jointRegression.__poseBlendShape.shape() ==
-        xt::xarray<double>::shape_type({BATCH_SIZE, VERTEX_NUM, 3})) {
-        __poseBlendShape = jointRegression.__poseBlendShape;
+    if (jointRegression.m__poseBlendShape.sizes() ==
+        torch::IntArrayRef({BATCH_SIZE, VERTEX_NUM, 3})) {
+        m__poseBlendShape = jointRegression.m__poseBlendShape.clone().to(
+            m__device);
     }
     else {
         throw smpl_error("JointRegression", "Failed to copy pose blend shape!");
     }
 
-    if (jointRegression.__templateRestShape.shape() ==
-        xt::xarray<double>::shape_type({VERTEX_NUM, 3})) {
-        __templateRestShape = jointRegression.__templateRestShape;
+    if (jointRegression.m__templateRestShape.sizes() ==
+        torch::IntArrayRef({VERTEX_NUM, 3})) {
+        m__templateRestShape = jointRegression.m__templateRestShape.clone().to(
+            m__device);
     }
     else {
         throw smpl_error("JointRegression", "Failed to copy template shape!");
     }
 
-    if (jointRegression.__jointRegressor.shape() == 
-        xt::xarray<double>::shape_type({JOINT_NUM, VERTEX_NUM})) {
-        __jointRegressor = jointRegression.__jointRegressor;
+    if (jointRegression.m__jointRegressor.sizes() == 
+        torch::IntArrayRef({JOINT_NUM, VERTEX_NUM})) {
+        m__jointRegressor = jointRegression.m__jointRegressor.clone().to(
+            m__device);
     }
     else {
         throw smpl_error("JointRegression", "Failed to copy joint regressor!");
@@ -238,15 +260,44 @@ JointRegression &JointRegression::operator=(
     //
     // soft copy
     //
-    if (jointRegression.__restShape.shape() ==
-        xt::xarray<double>::shape_type({BATCH_SIZE, VERTEX_NUM, 3})) {
-        __restShape = jointRegression.__restShape;
+    if (jointRegression.m__restShape.sizes() ==
+        torch::IntArrayRef({BATCH_SIZE, VERTEX_NUM, 3})) {
+        m__restShape = jointRegression.m__restShape.clone().to(m__device);
     }
 
-    if (jointRegression.__joints.shape() ==
-        xt::xarray<double>::shape_type({BATCH_SIZE, JOINT_NUM, 3})) {
-        __joints = jointRegression.__joints;
+    if (jointRegression.m__joints.sizes() ==
+        torch::IntArrayRef({BATCH_SIZE, JOINT_NUM, 3})) {
+        m__joints = jointRegression.m__joints.clone().to(m__device);
     }
+}
+
+/**setDevice
+ * 
+ * Brief
+ * ----------
+ * 
+ *      Set the torch device.
+ * 
+ * Arguments
+ * ----------
+ * 
+ *      @device: - const Device & -
+ *          The torch device to be used.
+ * 
+ * Return
+ * ----------
+ * 
+ */
+void JointRegression::setDevice(const torch::Device &device) noexcept(false)
+{
+    if (device.has_index()) {
+        m__device = device;
+    }
+    else {
+        throw smpl_error("JointRegression", "Failed to fetch device index!");
+    }
+
+    return;
 }
 
 /**setShapeBlendShape
@@ -260,7 +311,7 @@ JointRegression &JointRegression::operator=(
  * Arguments
  * ----------
  * 
- *      @shapeBlendShape: - xarray -
+ *      @shapeBlendShape: - const Tensor & -
  *          Shape blend shape of SMPL model, (N, 6890, 3).
  * 
  * Return
@@ -268,12 +319,12 @@ JointRegression &JointRegression::operator=(
  * 
  * 
  */
-void JointRegression::setShapeBlendShape(xt::xarray<double> shapeBlendShape)
+void JointRegression::setShapeBlendShape(const torch::Tensor &shapeBlendShape)
     noexcept(false)
 {
-    if (shapeBlendShape.shape() == 
-        xt::xarray<double>::shape_type({BATCH_SIZE, VERTEX_NUM, 3})) {
-        __shapeBlendShape = shapeBlendShape;
+    if (shapeBlendShape.sizes() == 
+        torch::IntArrayRef({BATCH_SIZE, VERTEX_NUM, 3})) {
+        m__shapeBlendShape = shapeBlendShape.clone().to(m__device);
     }
     else {
         throw smpl_error("JointRegression", "Failed to set shape blend shape!");
@@ -292,7 +343,7 @@ void JointRegression::setShapeBlendShape(xt::xarray<double> shapeBlendShape)
  * Arguments
  * ----------
  * 
- *      @poseBlendShape: - xarray -
+ *      @poseBlendShape: - const Tensor & -
  *          Pose blend shape of SMPL model, (N, 6890, 3).
  * 
  * Return
@@ -300,12 +351,12 @@ void JointRegression::setShapeBlendShape(xt::xarray<double> shapeBlendShape)
  * 
  * 
  */
-void JointRegression::setPoseBlendShape(xt::xarray<double> poseBlendShape)
+void JointRegression::setPoseBlendShape(const torch::Tensor &poseBlendShape)
     noexcept(false)
 {
-    if (poseBlendShape.shape() == 
-        xt::xarray<double>::shape_type({BATCH_SIZE, VERTEX_NUM, 3})) {
-        __poseBlendShape = poseBlendShape;
+    if (poseBlendShape.sizes() == 
+        torch::IntArrayRef({BATCH_SIZE, VERTEX_NUM, 3})) {
+        m__poseBlendShape = poseBlendShape.clone().to(m__device);
     }
     else {
         throw smpl_error("JointRegression", "Failed to set pose blend shape!");        
@@ -324,7 +375,7 @@ void JointRegression::setPoseBlendShape(xt::xarray<double> poseBlendShape)
  * Arguments
  * ----------
  * 
- *      @templateRestShape: - xarray -
+ *      @templateRestShape: - const Tensor & -
  *          Template shape in rest pose, (6890, 3).
  * 
  * Return
@@ -333,11 +384,11 @@ void JointRegression::setPoseBlendShape(xt::xarray<double> poseBlendShape)
  * 
  */
 void JointRegression::setTemplateRestShape(
-    xt::xarray<double> templateRestShape) noexcept(false)
+    const torch::Tensor &templateRestShape) noexcept(false)
 {
-    if (templateRestShape.shape() ==
-        xt::xarray<double>::shape_type({VERTEX_NUM, 3})) {
-        __templateRestShape = templateRestShape;
+    if (templateRestShape.sizes() ==
+        torch::IntArrayRef({VERTEX_NUM, 3})) {
+        m__templateRestShape = templateRestShape.clone().to(m__device);
     }
     else {
         throw smpl_error("JointRegression", "Failed to set template shape!");
@@ -356,22 +407,21 @@ void JointRegression::setTemplateRestShape(
  * Arguments
  * ----------
  * 
- *      @jointRegressor: - xarray -
+ *      @jointRegressor: - const Tensor & -
  *          Joint coefficients of each vertices for regressing them to joint
  *          locations, (24, 6890).
- * 
  * 
  * Return
  * ----------
  * 
  * 
  */
-void JointRegression::setJointRegressor(xt::xarray<double> jointRegressor)
+void JointRegression::setJointRegressor(const torch::Tensor &jointRegressor)
     noexcept(false)
 {
-    if (jointRegressor.shape() ==
-        xt::xarray<double>::shape_type({JOINT_NUM, VERTEX_NUM})) {
-        __jointRegressor = jointRegressor;
+    if (jointRegressor.sizes() ==
+        torch::IntArrayRef({JOINT_NUM, VERTEX_NUM})) {
+        m__jointRegressor = jointRegressor.clone().to(m__device);
     }
     else {
         throw smpl_error("JointRegression", "Failed to set joint regressor!");
@@ -392,17 +442,17 @@ void JointRegression::setJointRegressor(xt::xarray<double> jointRegressor)
  * Return
  * ----------
  * 
- *      @restShape: - xarray -
+ *      @restShape: - Tensor -
  *          Deformed shape in rest pose, (N, 6890, 3).     
  * 
  */
-xt::xarray<double> JointRegression::getRestShape() noexcept(false)
+torch::Tensor JointRegression::getRestShape() noexcept(false)
 {
-    xt::xarray<double> restShape;
+    torch::Tensor restShape;
 
-    if (__restShape.shape() ==
-        xt::xarray<double>::shape_type({BATCH_SIZE, VERTEX_NUM, 3})) {
-        restShape = __restShape;
+    if (m__restShape.sizes() ==
+        torch::IntArrayRef({BATCH_SIZE, VERTEX_NUM, 3})) {
+        restShape = m__restShape.clone().to(m__device);
     }
     else {
         throw smpl_error("JointRegression", "Failed to get rest shape!");
@@ -425,17 +475,17 @@ xt::xarray<double> JointRegression::getRestShape() noexcept(false)
  * Return
  * ----------
  * 
- *      @joints: - xarray -
+ *      @joints: - Tensor -
  *          Joint locations of the deformed shape, (N, 24, 3).
  * 
  */
-xt::xarray<double> JointRegression::getJoint() noexcept(false)
+torch::Tensor JointRegression::getJoint() noexcept(false)
 {
-    xt::xarray<double> joints;
+    torch::Tensor joints;
 
-    if (__joints.shape() ==
-        xt::xarray<double>::shape_type({BATCH_SIZE, JOINT_NUM, 3})) {
-        joints = __joints;
+    if (m__joints.sizes() ==
+        torch::IntArrayRef({BATCH_SIZE, JOINT_NUM, 3})) {
+        joints = m__joints.clone().to(m__device);
     }
     else {
         throw smpl_error("JointRegression", "Failed to get joints!");
@@ -502,14 +552,15 @@ void JointRegression::regress() noexcept(false)
  */
 void JointRegression::linearCombine() noexcept(false)
 {
-    if (__shapeBlendShape.shape() == 
-        xt::xarray<double>::shape_type({BATCH_SIZE, VERTEX_NUM, 3})
-        && __poseBlendShape.shape() ==
-        xt::xarray<double>::shape_type({BATCH_SIZE, VERTEX_NUM, 3})
-        && __templateRestShape.shape() == 
-        xt::xarray<double>::shape_type({VERTEX_NUM, 3})) {
-        __restShape = __templateRestShape + __shapeBlendShape + 
-            __poseBlendShape;
+    if (m__shapeBlendShape.sizes() == 
+        torch::IntArrayRef({BATCH_SIZE, VERTEX_NUM, 3})
+        && m__poseBlendShape.sizes() ==
+        torch::IntArrayRef({BATCH_SIZE, VERTEX_NUM, 3})
+        && m__templateRestShape.sizes() == 
+        torch::IntArrayRef({VERTEX_NUM, 3})) {
+        m__restShape = m__templateRestShape 
+            + m__shapeBlendShape 
+            + m__poseBlendShape;
     }
     else {
         throw smpl_error("JointRegression", "Cannot linearly combine shapes!");
@@ -536,15 +587,15 @@ void JointRegression::linearCombine() noexcept(false)
  */
 void JointRegression::jointRegress() noexcept(false)
 {
-    if (__shapeBlendShape.shape() ==
-        xt::xarray<double>::shape_type({BATCH_SIZE, VERTEX_NUM, 3})
-        && __templateRestShape.shape() == 
-        xt::xarray<double>::shape_type({VERTEX_NUM, 3})) {
-        xt::xarray<double> shape = __templateRestShape + 
-            __shapeBlendShape;// (N, 6890, 3)
-        __joints = xt::linalg::tensordot(shape, __jointRegressor, 
+    if (m__shapeBlendShape.sizes() ==
+        torch::IntArrayRef({BATCH_SIZE, VERTEX_NUM, 3})
+        && m__templateRestShape.sizes() == 
+        torch::IntArrayRef({VERTEX_NUM, 3})) {
+        torch::Tensor blendShape = m__templateRestShape + 
+            m__shapeBlendShape;// (N, 6890, 3)
+        m__joints = torch::tensordot(blendShape, m__jointRegressor, 
             {1}, {1});// (N, 3, 24)
-        __joints = xt::transpose(__joints, {0, 2, 1});// (N, 24, 3)
+        m__joints = torch::transpose(m__joints, 1, 2);// (N, 24, 3)
     }
     else {
         throw smpl_error("JointRegression", 

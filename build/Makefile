@@ -366,32 +366,32 @@ source/toolbox/Tester.cpp.s:
 	$(MAKE) -f CMakeFiles/smplpp.out.dir/build.make CMakeFiles/smplpp.out.dir/source/toolbox/Tester.cpp.s
 .PHONY : source/toolbox/Tester.cpp.s
 
-source/toolbox/XtensorEx.o: source/toolbox/XtensorEx.cpp.o
+source/toolbox/TorchEx.o: source/toolbox/TorchEx.cpp.o
 
-.PHONY : source/toolbox/XtensorEx.o
+.PHONY : source/toolbox/TorchEx.o
 
 # target to build an object file
-source/toolbox/XtensorEx.cpp.o:
-	$(MAKE) -f CMakeFiles/smplpp.out.dir/build.make CMakeFiles/smplpp.out.dir/source/toolbox/XtensorEx.cpp.o
-.PHONY : source/toolbox/XtensorEx.cpp.o
+source/toolbox/TorchEx.cpp.o:
+	$(MAKE) -f CMakeFiles/smplpp.out.dir/build.make CMakeFiles/smplpp.out.dir/source/toolbox/TorchEx.cpp.o
+.PHONY : source/toolbox/TorchEx.cpp.o
 
-source/toolbox/XtensorEx.i: source/toolbox/XtensorEx.cpp.i
+source/toolbox/TorchEx.i: source/toolbox/TorchEx.cpp.i
 
-.PHONY : source/toolbox/XtensorEx.i
+.PHONY : source/toolbox/TorchEx.i
 
 # target to preprocess a source file
-source/toolbox/XtensorEx.cpp.i:
-	$(MAKE) -f CMakeFiles/smplpp.out.dir/build.make CMakeFiles/smplpp.out.dir/source/toolbox/XtensorEx.cpp.i
-.PHONY : source/toolbox/XtensorEx.cpp.i
+source/toolbox/TorchEx.cpp.i:
+	$(MAKE) -f CMakeFiles/smplpp.out.dir/build.make CMakeFiles/smplpp.out.dir/source/toolbox/TorchEx.cpp.i
+.PHONY : source/toolbox/TorchEx.cpp.i
 
-source/toolbox/XtensorEx.s: source/toolbox/XtensorEx.cpp.s
+source/toolbox/TorchEx.s: source/toolbox/TorchEx.cpp.s
 
-.PHONY : source/toolbox/XtensorEx.s
+.PHONY : source/toolbox/TorchEx.s
 
 # target to generate assembly for a file
-source/toolbox/XtensorEx.cpp.s:
-	$(MAKE) -f CMakeFiles/smplpp.out.dir/build.make CMakeFiles/smplpp.out.dir/source/toolbox/XtensorEx.cpp.s
-.PHONY : source/toolbox/XtensorEx.cpp.s
+source/toolbox/TorchEx.cpp.s:
+	$(MAKE) -f CMakeFiles/smplpp.out.dir/build.make CMakeFiles/smplpp.out.dir/source/toolbox/TorchEx.cpp.s
+.PHONY : source/toolbox/TorchEx.cpp.s
 
 # Help Target
 help:
@@ -429,9 +429,9 @@ help:
 	@echo "... source/toolbox/Tester.o"
 	@echo "... source/toolbox/Tester.i"
 	@echo "... source/toolbox/Tester.s"
-	@echo "... source/toolbox/XtensorEx.o"
-	@echo "... source/toolbox/XtensorEx.i"
-	@echo "... source/toolbox/XtensorEx.s"
+	@echo "... source/toolbox/TorchEx.o"
+	@echo "... source/toolbox/TorchEx.i"
+	@echo "... source/toolbox/TorchEx.s"
 .PHONY : help
 
 

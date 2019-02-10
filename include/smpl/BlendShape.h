@@ -32,7 +32,7 @@
 //===== INCLUDES ==============================================================
 
 //----------
-#include <xtensor/xarray.hpp>
+#include <torch/torch.h>
 //----------
 #include "toolbox/Exception.h"
 //----------
@@ -67,33 +67,36 @@ namespace smpl {
  * 
  * ATTRIBUTES:
  *
- *      - __beta: <private>
+ *      - m__device: <private>
+ *          Torch device to run the module, could be CPUs or GPUs.
+ * 
+ *      - m__beta: <private>
  *          Batch of shape coefficient vectors, (N, 10).
  *
- *      - __shapeBlendBasis: <private>
+ *      - m__shapeBlendBasis: <private>
  *          Basis of the shape-dependent shape space,
  *          (6890, 3, 10).
  * 
- *      - __shapeBlendShape: <private>
+ *      - m__shapeBlendShape: <private>
  *          Shape blend shape of SMPL model, (N, 6890, 3).
  * 
- *      - __theta: <private>
+ *      - m__theta: <private>
  *          Batch of pose in axis-angle representations, (N, 24, 3).
  *
- *      - __restTheta: <private>
+ *      - m__restTheta: <private>
  *          Batch of rest pose in axis-angle representations, (N, 24, 3).
  *  
- *      - __poseRot: <private>
+ *      - m__poseRot: <private>
  *          Rotation with respect to pose axis-angles representations,
  *          (N, 24, 3, 3).
  *
- *      - __restPoseRot: <private>
+ *      - m__restPoseRot: <private>
  *          Pose rotation of rest pose, (N, 24, 3, 3).
  *
- *      - __poseBlendBasis: <private>
+ *      - m__poseBlendBasis: <private>
  *          Basis of the pose-dependent shape space, (6890, 3, 207).
  *
- *      - __poseBlendShape: <private>
+ *      - m__poseBlendShape: <private>
  *          Pose blend shape of SMPL model, (N, 6890, 3).
  * 
  * METHODS:
@@ -105,7 +108,8 @@ namespace smpl {
  *          Default constructor.
  * 
  *      - BlendShape: (overload) <public>
- *          Constructor to initialize both shape and pose basis.
+ *          Constructor to initialize shape blend basis, pose blend basis, and
+ *          torch device.
  *       
  *      - BlendShape: (overload) <public>
  *          Copy constructor.
@@ -125,6 +129,9 @@ namespace smpl {
  *      %
  *          Setter and Getter
  *      %
+ *      - setDevice: <public>
+ *          Set the torch device.
+ * 
  *      - setBeta: <public>
  *          Set shape coefficient vector.
  *
@@ -189,16 +196,18 @@ class BlendShape final
 
 private: // PRIVATE ATTRIBUTES
 
-    xt::xarray<double> __beta;
-    xt::xarray<double> __shapeBlendBasis;
-    xt::xarray<double> __shapeBlendShape;
+    torch::Device m__device;
 
-    xt::xarray<double> __theta;
-    xt::xarray<double> __restTheta;
-    xt::xarray<double> __poseRot;
-    xt::xarray<double> __restPoseRot;
-    xt::xarray<double> __poseBlendBasis;
-    xt::xarray<double> __poseBlendShape;
+    torch::Tensor m__beta;
+    torch::Tensor m__shapeBlendBasis;
+    torch::Tensor m__shapeBlendShape;
+
+    torch::Tensor m__theta;
+    torch::Tensor m__restTheta;
+    torch::Tensor m__poseRot;
+    torch::Tensor m__restPoseRot;
+    torch::Tensor m__poseBlendBasis;
+    torch::Tensor m__poseBlendShape;
 
 protected: // PROTECTED ATTRIBUTES
 
@@ -211,9 +220,9 @@ private: // PRIVATE METHODS
     // %% Blend Shape Generation %%
     void shapeBlend() noexcept(false);
     void poseBlend() noexcept(false);
-    xt::xarray<double> rodrigues(xt::xarray<double> theta) noexcept(false);
-    xt::xarray<double> unroll(xt::xarray<double> rotation) noexcept(false);
-    xt::xarray<double> linRotMin() noexcept(false);
+    torch::Tensor rodrigues(torch::Tensor &theta) noexcept(false);
+    torch::Tensor unroll(torch::Tensor &rotation) noexcept(false);
+    torch::Tensor linRotMin() noexcept(false);
 
 protected: // PROTECTED METHODS
 
@@ -222,8 +231,8 @@ public: // PUBLIC METHODS
 
     // %% Constructor and Deconstructor %%4
     BlendShape() noexcept(true);
-    BlendShape(xt::xarray<double> shapeBlendBasis,
-        xt::xarray<double> poseBlendBasis) noexcept(false);
+    BlendShape(torch::Tensor &shapeBlendBasis,
+        torch::Tensor &poseBlendBasis, torch::Device &device) noexcept(false);
     BlendShape(const BlendShape &blendShape) noexcept(false);
     ~BlendShape() noexcept(true);
     
@@ -234,19 +243,20 @@ public: // PUBLIC METHODS
     void blend() noexcept(false);
 
     // %% Setter and Getter %%
-    void setBeta(xt::xarray<double> beta) noexcept(false);
-    void setShapeBlendBasis(xt::xarray<double> shapeBlendBasis)
+    void setDevice(const torch::Device &device) noexcept(false);
+    void setBeta(const torch::Tensor &beta) noexcept(false);
+    void setShapeBlendBasis(const torch::Tensor &shapeBlendBasis)
         noexcept(false);
 
-    void setTheta(xt::xarray<double> theta) noexcept(false);
-    void setRestTheta(xt::xarray<double> restPostTheta) noexcept(true);    
-    void setPoseBlendBasis(xt::xarray<double> poseBlendBasis)
+    void setTheta(const torch::Tensor &theta) noexcept(false);
+    void setRestTheta(const torch::Tensor &restPostTheta) noexcept(true);    
+    void setPoseBlendBasis(const torch::Tensor &poseBlendBasis)
         noexcept(false);
 
-    xt::xarray<double> getShapeBlendShape() noexcept(false);
-    xt::xarray<double> getPoseRotation() noexcept(false);
-    xt::xarray<double> getRestPoseRotation() noexcept(false);
-    xt::xarray<double> getPoseBlendShape() noexcept(false);
+    torch::Tensor getShapeBlendShape() noexcept(false);
+    torch::Tensor getPoseRotation() noexcept(false);
+    torch::Tensor getRestPoseRotation() noexcept(false);
+    torch::Tensor getPoseBlendShape() noexcept(false);
 
 };
 

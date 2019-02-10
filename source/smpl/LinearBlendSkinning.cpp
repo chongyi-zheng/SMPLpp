@@ -30,12 +30,9 @@
 //===== INCLUDES ==============================================================
 
 //----------
-#include <xtensor/xbuilder.hpp>
-#include <xtensor-blas/xlinalg.hpp>
-//----------
 #include "definition/def.h"
 #include "toolbox/Exception.h"
-#include "toolbox/XtensorEx.hpp"
+#include "toolbox/TorchEx.hpp"
 #include "smpl/LinearBlendSkinning.h"
 //----------
 
@@ -71,10 +68,11 @@ namespace smpl {
  * 
  */
 LinearBlendSkinning::LinearBlendSkinning() noexcept(true) :
-    __restShape(),
-    __transformation(),
-    __weights(),
-    __posedVert()
+    m__device(torch::kCPU),
+    m__restShape(),
+    m__transformation(),
+    m__weights(),
+    m__posedVert()
 {
 }
 
@@ -88,21 +86,33 @@ LinearBlendSkinning::LinearBlendSkinning() noexcept(true) :
  * Arguments
  * ----------
  * 
- *      weights: - xarray -
+ *      @weights: - Tensor -
  *          Weights for linear blend skinning, (6890, 24).
  * 
+ *      @device: - Device -
+ *          Torch device to run the module, CPUs or GPUs.
  * 
  * Return
  * ----------
  * 
  * 
  */
-LinearBlendSkinning::LinearBlendSkinning(xt::xarray<double> weights) 
-    noexcept(false)
+LinearBlendSkinning::LinearBlendSkinning(torch::Tensor &weights,
+    torch::Device &device) 
+    noexcept(false) :
+    m__device(torch::kCPU)
 {
-    if (weights.shape() ==
-        xt::xarray<double>::shape_type({VERTEX_NUM, JOINT_NUM})) {
-        __weights = weights;
+    if (device.has_index()) {
+        m__device = device;
+    }
+    else {
+        throw smpl_error("LinearBlendSkinning", 
+            "Failed to fetch device index!");
+    }
+
+    if (weights.sizes() ==
+        torch::IntArrayRef({VERTEX_NUM, JOINT_NUM})) {
+        m__weights = weights.clone().to(m__device);
     }
     else {
         throw smpl_error("LinearBlendSkinning", 
@@ -130,7 +140,8 @@ LinearBlendSkinning::LinearBlendSkinning(xt::xarray<double> weights)
  */
 LinearBlendSkinning::LinearBlendSkinning(
     const LinearBlendSkinning &linearBlendSkinning) noexcept(false) :
-    __posedVert()
+    m__device(torch::kCPU),
+    m__posedVert()
 {
     try {
         *this = linearBlendSkinning;
@@ -170,7 +181,7 @@ LinearBlendSkinning::~LinearBlendSkinning() noexcept(true)
  * Arguments
  * ----------
  * 
- *      @linearBlendSkinning: - xarray -
+ *      @linearBlendSkinning: - Tensor -
  *          The <LinearBlendSkinning> instantiation to copy with.
  * 
  * Return
@@ -186,27 +197,36 @@ LinearBlendSkinning &LinearBlendSkinning::operator=(
     //
     // hard copy
     //
-    if (linearBlendSkinning.__restShape.shape() ==
-        xt::xarray<double>::shape_type({BATCH_SIZE, VERTEX_NUM, 3})) {
-        __restShape = linearBlendSkinning.__restShape;
+    if (linearBlendSkinning.m__device.has_index()) {
+        m__device = linearBlendSkinning.m__device;
+    }
+    else {
+        throw smpl_error("LinearBlendSkinning", 
+            "Failed to fetch device index!");
+    }
+
+    if (linearBlendSkinning.m__restShape.sizes() ==
+        torch::IntArrayRef({BATCH_SIZE, VERTEX_NUM, 3})) {
+        m__restShape = linearBlendSkinning.m__restShape.clone().to(m__device);
     }
     else {
         throw smpl_error("LinearBlendSkinning",
             "Failed to copy deformed shape in rest pose!");
     }
 
-    if (linearBlendSkinning.__transformation.shape() == 
-        xt::xarray<double>::shape_type({BATCH_SIZE, JOINT_NUM, 4, 4})) {
-        __transformation = linearBlendSkinning.__transformation;
+    if (linearBlendSkinning.m__transformation.sizes() == 
+        torch::IntArrayRef({BATCH_SIZE, JOINT_NUM, 4, 4})) {
+        m__transformation = linearBlendSkinning.m__transformation.clone().to(
+            m__device);
     }
     else {
         throw smpl_error("LinearBlendSkinning",
             "Failed to copy world transformation!");
     }
 
-    if (linearBlendSkinning.__weights.shape() ==
-        xt::xarray<double>::shape_type(VERTEX_NUM, JOINT_NUM)) {
-        __weights = linearBlendSkinning.__weights;
+    if (linearBlendSkinning.m__weights.sizes() ==
+        torch::IntArrayRef({VERTEX_NUM, JOINT_NUM})) {
+        m__weights = linearBlendSkinning.m__weights.clone().to(m__device);
     }
     else {
         throw smpl_error("LinearBlendSkinning", 
@@ -216,14 +236,42 @@ LinearBlendSkinning &LinearBlendSkinning::operator=(
     //
     // soft copy
     //
-    if (linearBlendSkinning.__posedVert.shape() ==
-        xt::xarray<double>::shape_type({BATCH_SIZE, VERTEX_NUM, 3})) {
-        __posedVert = linearBlendSkinning.__posedVert;
+    if (linearBlendSkinning.m__posedVert.sizes() ==
+        torch::IntArrayRef({BATCH_SIZE, VERTEX_NUM, 3})) {
+        m__posedVert = linearBlendSkinning.m__posedVert.clone().to(m__device);
     }
 
     return *this;
 }
 
+/**setDevice
+ * 
+ * Brief
+ * ----------
+ * 
+ *      Set the torch device.
+ * 
+ * Arguments
+ * ----------
+ * 
+ *      @device: - const Device & -
+ *          The torch device to be used.
+ * 
+ * Return
+ * ----------
+ * 
+ */
+void LinearBlendSkinning::setDevice(const torch::Device &device) noexcept(false)
+{
+    if (device.has_index()) {
+        m__device = device;
+    }
+    else {
+        throw smpl_error("LinearBlendSkinning", "Failed to fetch device index!");
+    }
+
+    return;
+}
 
 /**setRestShape
  * 
@@ -235,7 +283,7 @@ LinearBlendSkinning &LinearBlendSkinning::operator=(
  * Arguments
  * ----------
  * 
- *      @restShape: - xarray -
+ *      @restShape: - Tensor -
  *          Deformed shape in rest pose, (N, 6890, 3).
  * 
  * Return
@@ -244,11 +292,11 @@ LinearBlendSkinning &LinearBlendSkinning::operator=(
  * 
  */
 void LinearBlendSkinning::setRestShape(
-    xt::xarray<double> restShape) noexcept(false)
+    const torch::Tensor &restShape) noexcept(false)
 {
-    if (restShape.shape() == 
-        xt::xarray<double>::shape_type({BATCH_SIZE, VERTEX_NUM, 3})) {
-        __restShape = restShape;
+    if (restShape.sizes() == 
+        torch::IntArrayRef({BATCH_SIZE, VERTEX_NUM, 3})) {
+        m__restShape = restShape.clone().to(m__device);
     }
     else {
         throw smpl_error("LinearBlendSkinning",
@@ -268,7 +316,7 @@ void LinearBlendSkinning::setRestShape(
  * Arguments
  * ----------
  * 
- *      weights: - xarray -
+ *      weights: - Tensor -
  *          Weights for linear blend skinning, (6890, 24).
  * 
  * Return
@@ -276,11 +324,12 @@ void LinearBlendSkinning::setRestShape(
  * 
  * 
  */
-void LinearBlendSkinning::setWeight(xt::xarray<double> weights) noexcept(false)
+void LinearBlendSkinning::setWeight(
+    const torch::Tensor &weights) noexcept(false)
 {
-    if (weights.shape() ==
-        xt::xarray<double>::shape_type({VERTEX_NUM, JOINT_NUM})) {
-        __weights = weights;
+    if (weights.sizes() ==
+        torch::IntArrayRef({VERTEX_NUM, JOINT_NUM})) {
+        m__weights = weights.clone().to(m__device);
     }
     else {
         throw smpl_error("LinearBlendSkinning",
@@ -300,7 +349,7 @@ void LinearBlendSkinning::setWeight(xt::xarray<double> weights) noexcept(false)
  * Arguments
  * ----------
  * 
- *      @transformation: - xarray -
+ *      @transformation: - Tensor -
  *          World transformation expressed in homogeneous coordinates
  *          after eliminating effects of rest pose, (N, 24, 4, 4).
  * 
@@ -310,11 +359,11 @@ void LinearBlendSkinning::setWeight(xt::xarray<double> weights) noexcept(false)
  * 
  */
 void LinearBlendSkinning::setTransformation(
-    xt::xarray<double> transformation) noexcept(false)
+    const torch::Tensor &transformation) noexcept(false)
 {
-    if (transformation.shape() ==
-        xt::xarray<double>::shape_type({BATCH_SIZE, JOINT_NUM, 4, 4})) {
-        __transformation = transformation;
+    if (transformation.sizes() ==
+        torch::IntArrayRef({BATCH_SIZE, JOINT_NUM, 4, 4})) {
+        m__transformation = transformation.clone().to(m__device);
     }
     else {
         throw smpl_error("LinearBlendSkinning",
@@ -338,16 +387,16 @@ void LinearBlendSkinning::setTransformation(
  * Return
  * ----------
  * 
- *      @vertices: - xarray -
+ *      @vertices: - Tensor -
  *          Vertex locations of the new pose, (N, 6890, 3).
  * 
  */
-xt::xarray<double> LinearBlendSkinning::getVertex() noexcept(false)
+torch::Tensor LinearBlendSkinning::getVertex() noexcept(false)
 {
-    xt::xarray<double> vertices;
-    if (__posedVert.shape() == 
-        xt::xarray<double>::shape_type({BATCH_SIZE, VERTEX_NUM, 3})) {
-        vertices = __posedVert;
+    torch::Tensor vertices;
+    if (m__posedVert.sizes() == 
+        torch::IntArrayRef({BATCH_SIZE, VERTEX_NUM, 3})) {
+        vertices = m__posedVert.clone().to(m__device);
     }
     else {
         throw smpl_error("LinearBlendSknning", 
@@ -378,9 +427,9 @@ void LinearBlendSkinning::skinning() noexcept(false)
     //
     // Cartesian coordinates to homogeneous coordinates
     //
-    xt::xarray<double> restShapeHomo;
+    torch::Tensor restShapeHomo;
     try {
-        restShapeHomo = cart2homo(__restShape);// (N, 6890, 4)
+        restShapeHomo = cart2homo(m__restShape);// (N, 6890, 4)
     }
     catch(std::exception &e) {
         throw;
@@ -389,19 +438,19 @@ void LinearBlendSkinning::skinning() noexcept(false)
     //
     // linear blend skinning
     //
-    xt::xarray<double> coefficients = xt::linalg::tensordot(
-        __weights, __transformation, {1}, {1});// (N, 6890, 4, 4)
-    coefficients = xt::transpose(coefficients, {1, 0, 2, 3});// (N, 6890, 4, 4)
-    restShapeHomo = xt::expand_dims(restShapeHomo, 3);// (N, 6890, 4, 1)
-    xt::xarray<double> verticesHomo = XtensorEx::matmul(
-        coefficients, restShapeHomo);// (N, 6890, 4, 4)
-    verticesHomo = xt::squeeze(verticesHomo, 3);// (N, 6890, 4)
+    torch::Tensor coefficients = torch::tensordot(
+        m__weights, m__transformation, {1}, {1});// (6890, N, 4, 4)
+    coefficients = torch::transpose(coefficients, 0, 1);// (N, 6890, 4, 4)
+    restShapeHomo = torch::unsqueeze(restShapeHomo, 3);// (N, 6890, 4, 1)
+    torch::Tensor verticesHomo = torch::matmul(
+        coefficients, restShapeHomo);// (N, 6890, 4, 1)
+    verticesHomo = torch::squeeze(verticesHomo, 3);// (N, 6890, 4)
 
     //
     // homogeneous coordinates to Cartesian coordinates
     //
     try {
-        __posedVert = homo2cart(verticesHomo);
+        m__posedVert = homo2cart(verticesHomo);
     }
     catch(std::exception &e) {
         throw;
@@ -420,29 +469,28 @@ void LinearBlendSkinning::skinning() noexcept(false)
  * Argument
  * ----------
  * 
- *      @cart: - xarray -
+ *      @cart: - Tensor -
  *          Vectors in Cartesian coordinates, (N, 6890, 3).
  * 
  * Return
  * ----------
  * 
- *      @homo: - xarray -
+ *      @homo: - Tensor -
  *          Vectors in homogeneous coordinates, (N, 6890, 4).
  * 
  */
-xt::xarray<double> LinearBlendSkinning::cart2homo(xt::xarray<double> cart) 
+torch::Tensor LinearBlendSkinning::cart2homo(torch::Tensor &cart) 
     noexcept(false)
 {
-    if (cart.shape() !=
-        xt::xarray<double>::shape_type({BATCH_SIZE, VERTEX_NUM, 3})) {
+    if (cart.sizes() !=
+        torch::IntArrayRef({BATCH_SIZE, VERTEX_NUM, 3})) {
         throw smpl_error("LinearBlendSkinning",
             "Cannot convert Cartesian coordinates to homogeneous one!");
     }
 
-    xt::xarray<double> ones = xt::ones<double>(
-        {BATCH_SIZE_RAW, VERTEX_NUM_RAW, 1});// (N, 6890, 1)
-    xt::xarray<double> homo = xt::concatenate(
-        xt::xtuple(cart, ones), 2);// (N, 6890, 4)
+    torch::Tensor ones = torch::ones(
+        {BATCH_SIZE, VERTEX_NUM, 1}, m__device);// (N, 6890, 1)
+    torch::Tensor homo = torch::cat({cart, ones}, 2);// (N, 6890, 4)
 
     return homo;
 }
@@ -457,31 +505,35 @@ xt::xarray<double> LinearBlendSkinning::cart2homo(xt::xarray<double> cart)
  * Argument
  * ----------
  * 
- *      @homo: - xarray -
+ *      @homo: - Tensor -
  *          Vectors in homogeneous coordinates, (N, 6890, 4).
  * 
  * Return
  * ----------
  * 
- *      @cart: - xarray -
+ *      @cart: - Tensor -
  *          Vectors in Cartesian coordinates, (N, 6890, 3).
  * 
  */
-xt::xarray<double> LinearBlendSkinning::homo2cart(xt::xarray<double> homo) 
+torch::Tensor LinearBlendSkinning::homo2cart(torch::Tensor &homo) 
     noexcept(false)
 {
-    if (homo.shape() !=
-        xt::xarray<double>::shape_type({BATCH_SIZE, VERTEX_NUM, 4})) {
+    if (homo.sizes() !=
+        torch::IntArrayRef({BATCH_SIZE, VERTEX_NUM, 4})) {
         throw smpl_error("LinearBlendSkinning",
             "Cannot convert homogeneous coordinates to Cartesian ones!");
     }
 
-    xt::xarray<double> homoW = xt::view(homo,
-        xt::all(), xt::all(), 3);// (N, 6890)
-    homoW = xt::expand_dims(homoW, 2);// (N, 6890, 1)
-    xt::xarray<double> homoUnit = homo / homoW;// (N, 6890, 4)
-    xt::xarray<double> cart = xt::view(homoUnit, 
-        xt::all(), xt::all(), xt::range(0, 3));// (N, 6890, 3)
+    torch::Tensor homoW = TorchEx::indexing(homo,
+        torch::IntList(),
+        torch::IntList(),
+        torch::IntList({3}));// (N, 6890)
+    homoW = torch::unsqueeze(homoW, 2);// (N, 6890, 1)
+    torch::Tensor homoUnit = homo / homoW;// (N, 6890, 4)
+    torch::Tensor cart = TorchEx::indexing(homoUnit,
+        torch::IntList(), 
+        torch::IntList(), 
+        torch::IntList({0, 3}));// (N, 6890, 3)
     
     return cart;
 }

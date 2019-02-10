@@ -31,7 +31,7 @@
 
 //===== INCLUDES ==============================================================
 
-#include <xtensor/xarray.hpp>
+#include <torch/torch.h>
 
 //===== EXTERNAL FORWARD DECLARATIONS =========================================
 
@@ -63,22 +63,25 @@ namespace smpl {
  * 
  * ATTRIBUTES:
  * 
- *      - __restShape: <private>
+ *      - m__device: <private>
+ *          Torch device to run the module, could be CPUs or GPUs.
+ * 
+ *      - m__restShape: <private>
  *          Deformed shape in rest pose, (N, 6890, 3).
  * 
- *      - __shapeBlendShape: <private>
+ *      - m__shapeBlendShape: <private>
  *          Shape blend shape of SMPL model, (N, 6890, 3).
  * 
- *      - __poseBlendShape: <private>
+ *      - m__poseBlendShape: <private>
  *          Pose blend shape of SMPL model, (N, 6890, 3).
  * 
- *      - __templateRestShape: <private>
+ *      - m__templateRestShape: <private>
  *          Template shape in rest pose, (6890, 3).
  * 
- *      - __joints: <private>
+ *      - m__joints: <private>
  *          Joint locations of the deformed shape, (N, 24, 3).
  * 
- *      - __jointRegressor: <private>
+ *      - m__jointRegressor: <private>
  *          Joint coefficients of each vertices for regressing them to joint
  *          locations, (24, 6890).
  * 
@@ -91,7 +94,8 @@ namespace smpl {
  *          Default constructor.
  * 
  *      - JointRegression: (overload) <public>
- *          Constructor to initialize joint regressor and template shape.
+ *          Constructor to initialize joint regressor, template shape, and torch
+ *          device.
  * 
  *      - JointRegression: (overload) <public>
  *          Copy constructor.
@@ -110,6 +114,9 @@ namespace smpl {
  *      %
  *          Setter and Getter
  *      %
+ *      - setDevice: <public>
+ *          Set the torch device.
+ * 
  *      - setShapeBlendShape: <public>
  *          Set shape blend shape.
  * 
@@ -158,13 +165,15 @@ class JointRegression final
 
 private: // PRIVATE ATTRIBUTES
 
-    xt::xarray<double> __restShape;
-    xt::xarray<double> __shapeBlendShape;
-    xt::xarray<double> __poseBlendShape;
-    xt::xarray<double> __templateRestShape;
+    torch::Device m__device;
 
-    xt::xarray<double> __joints;
-    xt::xarray<double> __jointRegressor;
+    torch::Tensor m__restShape;
+    torch::Tensor m__shapeBlendShape;
+    torch::Tensor m__poseBlendShape;
+    torch::Tensor m__templateRestShape;
+
+    torch::Tensor m__joints;
+    torch::Tensor m__jointRegressor;
 
 protected: // PROTECTED ATTRIBUTES
 
@@ -181,8 +190,9 @@ public: // PUBLIC METHODS
 
     // %% Constructor and Deconstructor %%
     JointRegression() noexcept(true);
-    JointRegression(xt::xarray<double> jointRegressor, 
-        xt::xarray<double> templateRestShape) noexcept(false);
+    JointRegression(torch::Tensor &jointRegressor, 
+        torch::Tensor &templateRestShape, 
+        torch::Device &device) noexcept(false);
     JointRegression(const JointRegression &jointRegression) noexcept(false);
     ~JointRegression() noexcept(true);
 
@@ -191,17 +201,18 @@ public: // PUBLIC METHODS
         noexcept(false);
     
     // %% Getter and Setter %%
-    void setShapeBlendShape(xt::xarray<double> shapeBlendShape) 
+    void setDevice(const torch::Device &device) noexcept(false);
+    void setShapeBlendShape(const torch::Tensor &shapeBlendShape) 
         noexcept(false);
-    void setPoseBlendShape(xt::xarray<double> poseBlendShape)
+    void setPoseBlendShape(const torch::Tensor &poseBlendShape)
         noexcept(false);
-    void setTemplateRestShape(xt::xarray<double> templateRestShape)
+    void setTemplateRestShape(const torch::Tensor &templateRestShape)
         noexcept(false);
-    void setJointRegressor(xt::xarray<double> jointRegressor)
+    void setJointRegressor(const torch::Tensor &jointRegressor)
         noexcept(false);
     
-    xt::xarray<double> getRestShape() noexcept(false);
-    xt::xarray<double> getJoint() noexcept(false);
+    torch::Tensor getRestShape() noexcept(false);
+    torch::Tensor getJoint() noexcept(false);
 
     // %% Joint Regression Wrapper %%
     void regress() noexcept(false);

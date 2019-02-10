@@ -81,19 +81,19 @@ namespace smpl {
 Exception::Exception(const std::string module, const std::string error,
         const std::string function, const std::string file, const int line)
         noexcept(true) :
-    __module(module),
-    __error(error),
-    __function(function),
-    __file(file),
-    __line(line)
+    m__module(module),
+    m__error(error),
+    m__function(function),
+    m__file(file),
+    m__line(line)
 {
-    __stream << __module << " Error: ";
-    __stream << __error << std::endl;
-    __stream << "Broken Function: " << __function << std::endl;
-    __stream << "Broken File: " << __file << std::endl;
-    __stream << "Broken Line: " << __line << std::endl;
+    m__stream << m__module << " Error: ";
+    m__stream << m__error << std::endl;
+    m__stream << "Broken Function: " << m__function << std::endl;
+    m__stream << "Broken File: " << m__file << std::endl;
+    m__stream << "Broken Line: " << m__line << std::endl;
 
-    __message = __stream.str();
+    m__message = m__stream.str();
 }
 
 /**Exception (overload)
@@ -160,19 +160,19 @@ Exception::~Exception() noexcept(true)
  */
 Exception &Exception::operator=(const Exception &exception) noexcept(true)
 {
-    __module = exception.__module;
-    __error = exception.__error;
-    __function = exception.__function;
-    __file = exception.__file;
-    __line = exception.__line;
+    m__module = exception.m__module;
+    m__error = exception.m__error;
+    m__function = exception.m__function;
+    m__file = exception.m__file;
+    m__line = exception.m__line;
 
-    __stream << __module << " Error: ";
-    __stream << __error << std::endl;
-    __stream << "Broken Function: " << __function << std::endl;
-    __stream << "Broken File: " << __file << std::endl;
-    __stream << "Broken Line: " << __line;
+    m__stream << m__module << " Error: ";
+    m__stream << m__error << std::endl;
+    m__stream << "Broken Function: " << m__function << std::endl;
+    m__stream << "Broken File: " << m__file << std::endl;
+    m__stream << "Broken Line: " << m__line;
 
-    __message = __stream.str();
+    m__message = m__stream.str();
 
     return *this;
 }
@@ -197,7 +197,7 @@ Exception &Exception::operator=(const Exception &exception) noexcept(true)
  */
 const char *Exception::what() const noexcept(true)
 {
-    return __message.c_str();
+    return m__message.c_str();
 }
 
 

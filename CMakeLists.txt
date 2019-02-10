@@ -1,14 +1,16 @@
 ##
 ## CMAKE VERSION
 ##
-cmake_minimum_required(VERSION 2.8.9)
+cmake_minimum_required(VERSION 3.0.0)
 
 ##
 ## PROJECT NAME
 ##
 project(SMPL++)
 
-## COMPILER_SETTINGS
+##
+## COMPILER SETTINGS
+##
 set(CMAKE_CXX_STANDARD_REQUIRED 14) # MUST BE C++ 14 HERE !!!
 set(CMAKE_BUILD_TYPE DEBUG)
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
@@ -105,7 +107,7 @@ set(PROJECT_INCLUDE_DIRS
 # message("xtensor-blas: ${xtensor_blas_INCLUDE_DIRS}")
 # message("OpenBLAS: ${OpenBLAS_INCLUDE_DIRS}")
 # message("OpenMesh: ${OPENMESH_INCLUDE_DIRS}")
-message("Torch: ${TORCH_INCLUDE_DIRS}")
+# message("Torch: ${TORCH_INCLUDE_DIRS}")
 # message("-------------------------------")
 
 ##
@@ -139,7 +141,7 @@ set(PROJECT_LIBRARIES
 # message("BLAS: ${BLAS_LIBRARIES}")
 # message("BLAS: ${LAPACK_LIBRARIES}")
 # message("OpenMesh: ${OPENMESH_LIBRARIES}")
-message("Torch: ${TORCH_LIBRARIES}")
+# message("Torch: ${TORCH_LIBRARIES}")
 # message("-------------------------------")
 
 ##

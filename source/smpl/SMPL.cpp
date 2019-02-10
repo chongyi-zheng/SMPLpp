@@ -33,9 +33,12 @@
 #include <fstream>
 #include <experimental/filesystem>
 //----------
-#include <xtensor/xview.hpp>
+#include <xtensor/xarray.hpp>
+#include <xtensor/xadapt.hpp>
+#include <xtensor/xjson.hpp>
 //----------
 #include "definition/def.h"
+#include "toolbox/TorchEx.hpp"
 #include "smpl/SMPL.h"
 //----------
 
@@ -71,13 +74,21 @@ namespace smpl {
  * 
  */
 SMPL::SMPL() noexcept(true) :
-    __modelPath(),
-    __vertPath(),
-    __model(),
-    __blender(),
-    __regressor(),
-    __transformer(),
-    __skinner()
+    m__device(torch::kCPU),
+    m__modelPath(),
+    m__vertPath(),
+    m__faceIndices(),
+    m__shapeBlendBasis(),
+    m__poseBlendBasis(),
+    m__templateRestShape(),
+    m__jointRegressor(),
+    m__kinematicTree(),
+    m__weights(),
+    m__model(),
+    m__blender(),
+    m__regressor(),
+    m__transformer(),
+    m__skinner()
 {
 }
 
@@ -99,17 +110,26 @@ SMPL::SMPL() noexcept(true) :
  * 
  * 
  */
-SMPL::SMPL(std::string modelPath, std::string vertPath) noexcept(false) :
-    __model(),
-    __blender(),
-    __regressor(),
-    __transformer(),
-    __skinner()
+SMPL::SMPL(std::string &modelPath, 
+    std::string &vertPath, torch::Device &device) noexcept(false) :
+    m__device(torch::kCPU),
+    m__model(),
+    m__blender(),
+    m__regressor(),
+    m__transformer(),
+    m__skinner()
 {
+    if (device.has_index()) {
+        m__device = device;
+    }
+    else {
+        throw smpl_error("SMPL", "Failed to fetch device index!");
+    }
+
     std::experimental::filesystem::path path(modelPath);
     if (std::experimental::filesystem::exists(path)) {
-        __modelPath = modelPath;
-        __vertPath = vertPath;
+        m__modelPath = modelPath;
+        m__vertPath = vertPath;
     }
     else {
         throw smpl_error("SMPL", "Failed to initialize model path!");
@@ -135,7 +155,8 @@ SMPL::SMPL(std::string modelPath, std::string vertPath) noexcept(false) :
  * 
  * 
  */
-SMPL::SMPL(const SMPL& smpl) noexcept(false)
+SMPL::SMPL(const SMPL& smpl) noexcept(false) :
+    m__device(torch::kCPU)
 {
     try {
         *this = smpl;
@@ -181,6 +202,8 @@ SMPL::~SMPL() noexcept(true)
  * Return
  * ----------
  * 
+ *      @this*: - SMPL & -
+ *          Current instantiation.
  * 
  */
 SMPL &SMPL::operator=(const SMPL& smpl) noexcept(false)
@@ -188,26 +211,108 @@ SMPL &SMPL::operator=(const SMPL& smpl) noexcept(false)
     //
     // hard copy
     //
-    std::experimental::filesystem::path path(smpl.__modelPath);
+    if (smpl.m__device.has_index()) {
+        m__device = smpl.m__device;
+    }
+    else {
+        throw smpl_error("SMPL", "Failed to fetch device index!");
+    }
+
+    std::experimental::filesystem::path path(smpl.m__modelPath);
     if (std::experimental::filesystem::exists(path)) {
-        __modelPath = smpl.__modelPath;
+        m__modelPath = smpl.m__modelPath;
     }
     else {
         throw smpl_error("SMPL", "Failed to copy model path!");
     }
 
     try {
-        __vertPath = smpl.__vertPath;
+        m__vertPath = smpl.m__vertPath;
 
-        __model = smpl.__model;
-        __blender = smpl.__blender;
-        __regressor = smpl.__regressor;
-        __transformer = smpl.__transformer;
-        __skinner = smpl.__skinner;
+        m__model = smpl.m__model;
+        m__blender = smpl.m__blender;
+        m__regressor = smpl.m__regressor;
+        m__transformer = smpl.m__transformer;
+        m__skinner = smpl.m__skinner;
     }
     catch(std::exception &e) {
         throw;
     }
+
+    //
+    // soft copy
+    //
+    if (smpl.m__faceIndices.sizes() ==
+        torch::IntArrayRef({FACE_INDEX_NUM, 3})) {
+        m__faceIndices = smpl.m__faceIndices.clone().to(m__device);
+    }
+
+    if (smpl.m__shapeBlendBasis.sizes() == 
+        torch::IntArrayRef({VERTEX_NUM, 3, SHAPE_BASIS_DIM})) {
+        m__shapeBlendBasis = smpl.m__shapeBlendBasis.clone().to(
+            m__device);
+    }
+
+    if (smpl.m__poseBlendBasis.sizes() == 
+        torch::IntArrayRef({VERTEX_NUM, 3, POSE_BASIS_DIM})) {
+        m__poseBlendBasis = smpl.m__poseBlendBasis.clone().to(m__device);
+    }
+
+    if (smpl.m__jointRegressor.sizes() == 
+        torch::IntArrayRef({JOINT_NUM, VERTEX_NUM})) {
+        m__jointRegressor = smpl.m__jointRegressor.clone().to(m__device);
+    }
+
+    if (smpl.m__templateRestShape.sizes() ==
+        torch::IntArrayRef({VERTEX_NUM, 3})) {
+        m__templateRestShape = smpl.m__templateRestShape.clone().to(
+            m__device);
+    }
+
+    if (smpl.m__kinematicTree.sizes() ==
+        torch::IntArrayRef({2, JOINT_NUM})) {
+        m__kinematicTree = smpl.m__kinematicTree.clone().to(m__device);
+    }
+
+    if (smpl.m__weights.sizes() ==
+        torch::IntArrayRef({VERTEX_NUM, JOINT_NUM})) {
+        m__weights = smpl.m__weights.clone().to(m__device);
+    }
+
+    return *this;
+}
+
+/**setDevice
+ * 
+ * Brief
+ * ----------
+ * 
+ *      Set the torch device.
+ * 
+ * Arguments
+ * ----------
+ * 
+ *      @device: - const Device & -
+ *          The torch device to be used.
+ * 
+ * Return
+ * ----------
+ * 
+ */
+void SMPL::setDevice(const torch::Device &device) noexcept(false)
+{
+    if (device.has_index()) {
+        m__device = device;
+        m__blender.setDevice(device);
+        m__regressor.setDevice(device);
+        m__transformer.setDevice(device);
+        m__skinner.setDevice(device);
+    }
+    else {
+        throw smpl_error("SMPL", "Failed to fetch device index!");
+    }
+
+    return;
 }
 
 /**setModelPath
@@ -228,15 +333,17 @@ SMPL &SMPL::operator=(const SMPL& smpl) noexcept(false)
  * 
  * 
  */
-void SMPL::setModelPath(std::string modelPath) noexcept(false)
+void SMPL::setModelPath(const std::string &modelPath) noexcept(false)
 {
     std::experimental::filesystem::path path(modelPath);
     if (std::experimental::filesystem::exists(path)) {
-        __modelPath = modelPath;
+        m__modelPath = modelPath;
     }
     else {
         throw smpl_error("SMPL", "Failed to initialize model path!");
     }
+
+    return;
 }
 
 /**setVertPath
@@ -257,9 +364,11 @@ void SMPL::setModelPath(std::string modelPath) noexcept(false)
  * 
  * 
  */
-void SMPL::setVertPath(std::string vertexPath) noexcept(false)
+void SMPL::setVertPath(const std::string &vertexPath) noexcept(false)
 {
-    __vertPath = vertexPath;
+    m__vertPath = vertexPath;
+
+    return;
 }
 
 /**getRestShape
@@ -276,16 +385,16 @@ void SMPL::setVertPath(std::string vertexPath) noexcept(false)
  * Return
  * ----------
  * 
- *      @restShape: - xarray -
+ *      @restShape: - Tensor -
  *          Deformed shape in rest pose, (N, 6890, 3)
  * 
  */
-xt::xarray<double> SMPL::getRestShape() noexcept(false)
+torch::Tensor SMPL::getRestShape() noexcept(false)
 {
-    xt::xarray<double> restShape;
+    torch::Tensor restShape;
     
     try {
-        restShape = __regressor.getRestShape();
+        restShape = m__regressor.getRestShape().clone().to(m__device);
     }
     catch(std::exception &e) {
         throw;
@@ -308,24 +417,19 @@ xt::xarray<double> SMPL::getRestShape() noexcept(false)
  * Return
  * ----------
  * 
- *      @faceIndices: - xarray -
+ *      @faceIndices: - Tensor -
  *          Vertex indices of each face (triangles), (13776, 3).
  * 
  */
-xt::xarray<uint32_t> SMPL::getFaceIndex() noexcept(false)
+torch::Tensor SMPL::getFaceIndex() noexcept(false)
 {
-    xt::xarray<uint32_t> faceIndices;
-
-    if (__model.is_null()) {
-        throw smpl_error("SMPL", "Failed to get face indices!");
+    torch::Tensor faceIndices;
+    if (m__faceIndices.sizes() !=
+        torch::IntArrayRef(
+            {FACE_INDEX_NUM, 3})) {
+        faceIndices = m__faceIndices.clone().to(m__device);
     }
     else {
-        xt::from_json(__model["face_indices"], faceIndices);
-    }
-
-    if (faceIndices.shape() !=
-        xt::xarray<uint32_t>::shape_type(
-            {FACE_INDEX_NUM, 3})) {
         throw smpl_error("SMPL", "Failed to get face indices!");
     }
 
@@ -346,16 +450,16 @@ xt::xarray<uint32_t> SMPL::getFaceIndex() noexcept(false)
  * Return
  * ----------
  * 
- *      @joints: - xarray -
+ *      @joints: - Tensor -
  *          Joint locations of the deformed mesh in rest pose, (N, 24, 3).
  * 
  */
-xt::xarray<double> SMPL::getRestJoint() noexcept(false)
+torch::Tensor SMPL::getRestJoint() noexcept(false)
 {
-    xt::xarray<double> joints;
+    torch::Tensor joints;
     
     try {
-        joints = __regressor.getJoint();
+        joints = m__regressor.getJoint().clone().to(m__device);
     }
     catch (std::exception &e) {
         throw;
@@ -378,16 +482,16 @@ xt::xarray<double> SMPL::getRestJoint() noexcept(false)
  * Return
  * ----------
  * 
- *      @vertices: - xarray -
+ *      @vertices: - Tensor -
  *          Vertex locations of the deformed mesh, (N, 6890, 3).
  * 
  */
-xt::xarray<double> SMPL::getVertex() noexcept(false)
+torch::Tensor SMPL::getVertex() noexcept(false)
 {
-    xt::xarray<double> vertices;
+    torch::Tensor vertices;
 
     try {
-        vertices = __skinner.getVertex();
+        vertices = m__skinner.getVertex().clone().to(m__device);
     }
     catch(std::exception &e) {
         throw;
@@ -416,10 +520,52 @@ xt::xarray<double> SMPL::getVertex() noexcept(false)
  */
 void SMPL::init() noexcept(false)
 {
-    std::experimental::filesystem::path path(__modelPath);
+    std::experimental::filesystem::path path(m__modelPath);
     if (std::experimental::filesystem::exists(path)) {
         std::ifstream file(path);
-        file >> __model;
+        file >> m__model;
+
+        //
+        // data loading
+        //
+        // face indices
+        xt::xarray<int32_t> faceIndices;
+        xt::from_json(m__model["face_indices"], faceIndices);
+        m__faceIndices = torch::from_blob(faceIndices.data(),
+            {FACE_INDEX_NUM, 3}, torch::kInt32).clone().to(
+                m__device);
+
+        // blender
+        xt::xarray<float> shapeBlendBasis;
+        xt::xarray<float> poseBlendBasis;
+        xt::from_json(m__model["shape_blend_shapes"], shapeBlendBasis);
+        xt::from_json(m__model["pose_blend_shapes"], poseBlendBasis);
+        m__shapeBlendBasis = torch::from_blob(shapeBlendBasis.data(),
+            {VERTEX_NUM, 3, SHAPE_BASIS_DIM}).to(m__device);// (6890, 3, 10)
+        m__poseBlendBasis = torch::from_blob(poseBlendBasis.data(),
+            {VERTEX_NUM, 3, POSE_BASIS_DIM}).to(m__device);// (6890, 3, 207)
+
+        // regressor
+        xt::xarray<float> templateRestShape;
+        xt::xarray<float> jointRegressor;
+        xt::from_json(m__model["vertices_template"], templateRestShape);
+        xt::from_json(m__model["joint_regressor"], jointRegressor);
+        m__templateRestShape = torch::from_blob(templateRestShape.data(),
+            {VERTEX_NUM, 3}).to(m__device);// (6890, 3)
+        m__jointRegressor = torch::from_blob(jointRegressor.data(),
+            {JOINT_NUM, VERTEX_NUM}).to(m__device);// (24, 6890)
+
+        // transformer
+        xt::xarray<int64_t> kinematicTree;
+        xt::from_json(m__model["kinematic_tree"], kinematicTree);
+        m__kinematicTree = torch::from_blob(kinematicTree.data(),
+            {2, JOINT_NUM}, torch::kInt64).to(m__device);// (2, 24)
+
+        // skinner
+        xt::xarray<float> weights;
+        xt::from_json(m__model["weights"], weights);
+        m__weights = torch::from_blob(weights.data(),
+            {VERTEX_NUM, JOINT_NUM}).to(m__device);// (6890, 24)
     }
     else {
         throw smpl_error("SMPL", "Cannot initialize a SMPL model!");
@@ -439,13 +585,13 @@ void SMPL::init() noexcept(false)
  * Arguments
  * ----------
  * 
- *      @beta: - xarray -
+ *      @beta: - Tensor -
  *          Batch of shape coefficient vectors, (N, 10).
  * 
- *      @theta: - xarray -
+ *      @theta: - Tensor -
  *          Batch of pose in axis-angle representations, (N, 24, 3).
  * 
- *      @translation: - xarray -
+ *      @translation: - Tensor -
  *          Batch of global translation vectors, (N, 3).
  * 
  * 
@@ -455,14 +601,14 @@ void SMPL::init() noexcept(false)
  * 
  */
 void SMPL::launch(
-    xt::xarray<double> beta, 
-    xt::xarray<double> theta) noexcept(false)
+    torch::Tensor &beta, 
+    torch::Tensor &theta) noexcept(false)
 {
-    if (__model.is_null()
-        && beta.shape() !=
-            xt::xarray<double>::shape_type({BATCH_SIZE, SHAPE_BASIS_DIM})
-        && theta.shape() != 
-            xt::xarray<double>::shape_type({BATCH_SIZE, JOINT_NUM, 3})
+    if (m__model.is_null()
+        && beta.sizes() !=
+            torch::IntArrayRef({BATCH_SIZE, SHAPE_BASIS_DIM})
+        && theta.sizes() != 
+            torch::IntArrayRef({BATCH_SIZE, JOINT_NUM, 3})
         ) {
         throw smpl_error("SMPL", "Cannot launch a SMPL model!");
     }
@@ -471,65 +617,49 @@ void SMPL::launch(
         //
         // blend shapes
         //
-        xt::xarray<double> shapeBlendBasis;
-        xt::xarray<double> poseBlendBasis;
-        xt::from_json(__model["shape_blend_shapes"], shapeBlendBasis);
-        xt::from_json(__model["pose_blend_shapes"], poseBlendBasis);
+        m__blender.setBeta(beta);
+        m__blender.setTheta(theta);
+        m__blender.setShapeBlendBasis(m__shapeBlendBasis);
+        m__blender.setPoseBlendBasis(m__poseBlendBasis);
 
-        __blender.setBeta(beta);
-        __blender.setTheta(theta);
-        __blender.setShapeBlendBasis(shapeBlendBasis);
-        __blender.setPoseBlendBasis(poseBlendBasis);
+        m__blender.blend();
 
-        __blender.blend();
-
-        xt::xarray<double> shapeBlendShape = __blender.getShapeBlendShape();
-        xt::xarray<double> poseBlendShape = __blender.getPoseBlendShape();
-        xt::xarray<double> poseRotation = __blender.getPoseRotation();
+        torch::Tensor shapeBlendShape = m__blender.getShapeBlendShape();
+        torch::Tensor poseBlendShape = m__blender.getPoseBlendShape();
+        torch::Tensor poseRotation = m__blender.getPoseRotation();
 
         //
         // regress joints
         //
-        xt::xarray<double> templateRestShape;
-        xt::xarray<double> jointRegressor;
-        xt::from_json(__model["vertices_template"], templateRestShape);
-        xt::from_json(__model["joint_regressor"], jointRegressor);
+        m__regressor.setTemplateRestShape(m__templateRestShape);
+        m__regressor.setJointRegressor(m__jointRegressor);
+        m__regressor.setShapeBlendShape(shapeBlendShape);
+        m__regressor.setPoseBlendShape(poseBlendShape);
 
-        __regressor.setTemplateRestShape(templateRestShape);
-        __regressor.setJointRegressor(jointRegressor);
-        __regressor.setShapeBlendShape(shapeBlendShape);
-        __regressor.setPoseBlendShape(poseBlendShape);
+        m__regressor.regress();
 
-        __regressor.regress();
-
-        xt::xarray<double> restShape = __regressor.getRestShape();
-        xt::xarray<double> joints = __regressor.getJoint();
+        torch::Tensor restShape = m__regressor.getRestShape();
+        torch::Tensor joints = m__regressor.getJoint();
 
         //
         // transform
         //
-        xt::xarray<uint32_t> kinematicTree;
-        xt::from_json(__model["kinematic_tree"], kinematicTree);
+        m__transformer.setKinematicTree(m__kinematicTree);
+        m__transformer.setJoint(joints);
+        m__transformer.setPoseRotation(poseRotation);
 
-        __transformer.setKinematicTree(kinematicTree);
-        __transformer.setJoint(joints);
-        __transformer.setPoseRotation(poseRotation);
+        m__transformer.transform();
 
-        __transformer.transform();
-
-        xt::xarray<double> transformation = __transformer.getTransformation();
+        torch::Tensor transformation = m__transformer.getTransformation();
 
         //
         // skinning
         //
-        xt::xarray<double> weights;
-        xt::from_json(__model["weights"], weights);
+        m__skinner.setWeight(m__weights);
+        m__skinner.setRestShape(restShape);
+        m__skinner.setTransformation(transformation);
 
-        __skinner.setWeight(weights);
-        __skinner.setRestShape(restShape);
-        __skinner.setTransformation(transformation);
-
-        __skinner.skinning();
+        m__skinner.skinning();
     }
     catch(std::exception &e) {
         throw;
@@ -556,33 +686,62 @@ void SMPL::launch(
  * 
  * 
  */
-void SMPL::out(size_t index) noexcept(false)
+void SMPL::out(int64_t index) noexcept(false)
 {
-    xt::xarray<double> vertices = __skinner.getVertex();
-    xt::xarray<uint32_t> faceIndices;
-    xt::from_json(__model["face_indices"], faceIndices);
-    if (vertices.shape() ==
-            xt::xarray<double>::shape_type(
+    torch::Tensor vertices = 
+        m__skinner.getVertex().clone().to(m__device);// (N, 6890, 3)
+    
+    xt::xarray<int32_t> faceIndices;
+    torch::Tensor faceIndices_;
+    xt::from_json(m__model["face_indices"], faceIndices);
+    faceIndices_ = torch::from_blob(faceIndices.data(),
+        {FACE_INDEX_NUM, 3}).to(m__device);// (13776, 3)
+
+    if (vertices.sizes() ==
+            torch::IntArrayRef(
                 {BATCH_SIZE, VERTEX_NUM, 3})
-        && faceIndices.shape() ==
-            xt::xarray<uint32_t>::shape_type(
+        && faceIndices_.sizes() ==
+            torch::IntArrayRef(
                 {FACE_INDEX_NUM, 3})
         ) {
-        std::ofstream file(__vertPath);
+        std::ofstream file(m__vertPath);
 
-        xt::xarray<double> slice = xt::view(vertices, index);
-        for (size_t i = 0; i < VERTEX_NUM; i++) {
+        torch::Tensor slice_ = TorchEx::indexing(vertices,
+            torch::IntList({index}));// (6890, 3)
+        xt::xarray<float> slice = xt::adapt(
+            (float *)slice_.to(torch::kCPU).data_ptr(),
+            xt::xarray<float>::shape_type({(const size_t)VERTEX_NUM, 3})
+        );
+        for (int64_t i = 0; i < VERTEX_NUM; i++) {
             file << 'v' << ' '
-                << vertices(i, 0) << ' '
-                << vertices(i, 1) << ' ' 
-                << vertices(i, 2) << '\n';
+                << slice(i, 0) << ' '
+                << slice(i, 1) << ' ' 
+                << slice(i, 2) << '\n';
+                // << TorchEx::indexing(slice,
+                //         torch::IntList({i}),
+                //         torch::IntList({0})) << ' '
+                // << TorchEx::indexing(slice,
+                //         torch::IntList({i}),
+                //         torch::IntList({1})) << ' '
+                // << TorchEx::indexing(slice,
+                //         torch::IntList({i}),
+                //         torch::IntList({2})) << '\n';
         }
 
-        for (size_t i = 0; i < FACE_INDEX_NUM; i++) {
+        for (int64_t i = 0; i < FACE_INDEX_NUM; i++) {
             file << 'f' << ' '
                 << faceIndices(i, 0) << ' '
                 << faceIndices(i, 1) << ' '
                 << faceIndices(i, 2) << '\n';
+                // << TorchEx::indexing(faceIndices,
+                //         torch::IntList({i}),
+                //         torch::IntList({0})) << ' '
+                // << TorchEx::indexing(faceIndices,
+                //         torch::IntList({i}),
+                //         torch::IntList({1})) << ' '
+                // << TorchEx::indexing(faceIndices,
+                //         torch::IntList({i}),
+                //         torch::IntList({2})) << '\n';
         }
     }
     else {

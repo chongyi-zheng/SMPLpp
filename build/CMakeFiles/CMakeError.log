@@ -1,14 +1,14 @@
 Determining if the function sgemm_ exists failed with the following output:
 Change Dir: /home/yee/Documents/SMPL++/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_24f01/fast"
-/usr/bin/make -f CMakeFiles/cmTC_24f01.dir/build.make CMakeFiles/cmTC_24f01.dir/build
+Run Build Command:"/usr/bin/make" "cmTC_eb5c9/fast"
+/usr/bin/make -f CMakeFiles/cmTC_eb5c9.dir/build.make CMakeFiles/cmTC_eb5c9.dir/build
 make[1]: Entering directory '/home/yee/Documents/SMPL++/build/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_24f01.dir/CheckFunctionExists.c.o
-/usr/bin/cc   -DCHECK_FUNCTION_EXISTS=sgemm_   -o CMakeFiles/cmTC_24f01.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-3.10/Modules/CheckFunctionExists.c
-Linking C executable cmTC_24f01
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_24f01.dir/link.txt --verbose=1
-/usr/bin/cc  -DCHECK_FUNCTION_EXISTS=sgemm_    -rdynamic CMakeFiles/cmTC_24f01.dir/CheckFunctionExists.c.o  -o cmTC_24f01 /usr/local/lib/libopenblas.a 
+Building C object CMakeFiles/cmTC_eb5c9.dir/CheckFunctionExists.c.o
+/usr/bin/cc   -DCHECK_FUNCTION_EXISTS=sgemm_   -o CMakeFiles/cmTC_eb5c9.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-3.10/Modules/CheckFunctionExists.c
+Linking C executable cmTC_eb5c9
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_eb5c9.dir/link.txt --verbose=1
+/usr/bin/cc  -DCHECK_FUNCTION_EXISTS=sgemm_    -rdynamic CMakeFiles/cmTC_eb5c9.dir/CheckFunctionExists.c.o  -o cmTC_eb5c9 /usr/local/lib/libopenblas.a 
 /usr/local/lib/libopenblas.a(memory.c.o): In function `openblas_fork_handler':
 memory.c:(.text+0xd5): undefined reference to `pthread_atfork'
 /usr/local/lib/libopenblas.a(blas_server.c.o): In function `blas_thread_init':
@@ -18,32 +18,32 @@ blas_server.c:(.text+0x11da): undefined reference to `pthread_create'
 /usr/local/lib/libopenblas.a(blas_server.c.o): In function `blas_thread_shutdown_':
 blas_server.c:(.text+0x1617): undefined reference to `pthread_join'
 collect2: error: ld returned 1 exit status
-CMakeFiles/cmTC_24f01.dir/build.make:98: recipe for target 'cmTC_24f01' failed
-make[1]: *** [cmTC_24f01] Error 1
+CMakeFiles/cmTC_eb5c9.dir/build.make:98: recipe for target 'cmTC_eb5c9' failed
+make[1]: *** [cmTC_eb5c9] Error 1
 make[1]: Leaving directory '/home/yee/Documents/SMPL++/build/CMakeFiles/CMakeTmp'
-Makefile:126: recipe for target 'cmTC_24f01/fast' failed
-make: *** [cmTC_24f01/fast] Error 2
+Makefile:126: recipe for target 'cmTC_eb5c9/fast' failed
+make: *** [cmTC_eb5c9/fast] Error 2
 
 
 Determining if the pthread_create exist failed with the following output:
 Change Dir: /home/yee/Documents/SMPL++/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_54e4f/fast"
-/usr/bin/make -f CMakeFiles/cmTC_54e4f.dir/build.make CMakeFiles/cmTC_54e4f.dir/build
+Run Build Command:"/usr/bin/make" "cmTC_5fd21/fast"
+/usr/bin/make -f CMakeFiles/cmTC_5fd21.dir/build.make CMakeFiles/cmTC_5fd21.dir/build
 make[1]: Entering directory '/home/yee/Documents/SMPL++/build/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_54e4f.dir/CheckSymbolExists.c.o
-/usr/bin/cc    -o CMakeFiles/cmTC_54e4f.dir/CheckSymbolExists.c.o   -c /home/yee/Documents/SMPL++/build/CMakeFiles/CMakeTmp/CheckSymbolExists.c
-Linking C executable cmTC_54e4f
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_54e4f.dir/link.txt --verbose=1
-/usr/bin/cc      -rdynamic CMakeFiles/cmTC_54e4f.dir/CheckSymbolExists.c.o  -o cmTC_54e4f 
-CMakeFiles/cmTC_54e4f.dir/CheckSymbolExists.c.o: In function `main':
+Building C object CMakeFiles/cmTC_5fd21.dir/CheckSymbolExists.c.o
+/usr/bin/cc    -o CMakeFiles/cmTC_5fd21.dir/CheckSymbolExists.c.o   -c /home/yee/Documents/SMPL++/build/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+Linking C executable cmTC_5fd21
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_5fd21.dir/link.txt --verbose=1
+/usr/bin/cc      -rdynamic CMakeFiles/cmTC_5fd21.dir/CheckSymbolExists.c.o  -o cmTC_5fd21 
+CMakeFiles/cmTC_5fd21.dir/CheckSymbolExists.c.o: In function `main':
 CheckSymbolExists.c:(.text+0x1b): undefined reference to `pthread_create'
 collect2: error: ld returned 1 exit status
-CMakeFiles/cmTC_54e4f.dir/build.make:97: recipe for target 'cmTC_54e4f' failed
-make[1]: *** [cmTC_54e4f] Error 1
+CMakeFiles/cmTC_5fd21.dir/build.make:97: recipe for target 'cmTC_5fd21' failed
+make[1]: *** [cmTC_5fd21] Error 1
 make[1]: Leaving directory '/home/yee/Documents/SMPL++/build/CMakeFiles/CMakeTmp'
-Makefile:126: recipe for target 'cmTC_54e4f/fast' failed
-make: *** [cmTC_54e4f/fast] Error 2
+Makefile:126: recipe for target 'cmTC_5fd21/fast' failed
+make: *** [cmTC_5fd21/fast] Error 2
 
 File /home/yee/Documents/SMPL++/build/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
 /* */
@@ -63,34 +63,34 @@ int main(int argc, char** argv)
 Determining if the function pthread_create exists in the pthreads failed with the following output:
 Change Dir: /home/yee/Documents/SMPL++/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_2b26f/fast"
-/usr/bin/make -f CMakeFiles/cmTC_2b26f.dir/build.make CMakeFiles/cmTC_2b26f.dir/build
+Run Build Command:"/usr/bin/make" "cmTC_51003/fast"
+/usr/bin/make -f CMakeFiles/cmTC_51003.dir/build.make CMakeFiles/cmTC_51003.dir/build
 make[1]: Entering directory '/home/yee/Documents/SMPL++/build/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_2b26f.dir/CheckFunctionExists.c.o
-/usr/bin/cc   -DCHECK_FUNCTION_EXISTS=pthread_create   -o CMakeFiles/cmTC_2b26f.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-3.10/Modules/CheckFunctionExists.c
-Linking C executable cmTC_2b26f
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_2b26f.dir/link.txt --verbose=1
-/usr/bin/cc  -DCHECK_FUNCTION_EXISTS=pthread_create    -rdynamic CMakeFiles/cmTC_2b26f.dir/CheckFunctionExists.c.o  -o cmTC_2b26f -lpthreads 
+Building C object CMakeFiles/cmTC_51003.dir/CheckFunctionExists.c.o
+/usr/bin/cc   -DCHECK_FUNCTION_EXISTS=pthread_create   -o CMakeFiles/cmTC_51003.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-3.10/Modules/CheckFunctionExists.c
+Linking C executable cmTC_51003
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_51003.dir/link.txt --verbose=1
+/usr/bin/cc  -DCHECK_FUNCTION_EXISTS=pthread_create    -rdynamic CMakeFiles/cmTC_51003.dir/CheckFunctionExists.c.o  -o cmTC_51003 -lpthreads 
 /usr/bin/ld: cannot find -lpthreads
 collect2: error: ld returned 1 exit status
-CMakeFiles/cmTC_2b26f.dir/build.make:97: recipe for target 'cmTC_2b26f' failed
-make[1]: *** [cmTC_2b26f] Error 1
+CMakeFiles/cmTC_51003.dir/build.make:97: recipe for target 'cmTC_51003' failed
+make[1]: *** [cmTC_51003] Error 1
 make[1]: Leaving directory '/home/yee/Documents/SMPL++/build/CMakeFiles/CMakeTmp'
-Makefile:126: recipe for target 'cmTC_2b26f/fast' failed
-make: *** [cmTC_2b26f/fast] Error 2
+Makefile:126: recipe for target 'cmTC_51003/fast' failed
+make: *** [cmTC_51003/fast] Error 2
 
 
 Determining if the function cheev_ exists failed with the following output:
 Change Dir: /home/yee/Documents/SMPL++/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_30d6e/fast"
-/usr/bin/make -f CMakeFiles/cmTC_30d6e.dir/build.make CMakeFiles/cmTC_30d6e.dir/build
+Run Build Command:"/usr/bin/make" "cmTC_c6023/fast"
+/usr/bin/make -f CMakeFiles/cmTC_c6023.dir/build.make CMakeFiles/cmTC_c6023.dir/build
 make[1]: Entering directory '/home/yee/Documents/SMPL++/build/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_30d6e.dir/CheckFunctionExists.c.o
-/usr/bin/cc   -DCHECK_FUNCTION_EXISTS=cheev_   -o CMakeFiles/cmTC_30d6e.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-3.10/Modules/CheckFunctionExists.c
-Linking C executable cmTC_30d6e
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_30d6e.dir/link.txt --verbose=1
-/usr/bin/cc  -DCHECK_FUNCTION_EXISTS=cheev_    -rdynamic CMakeFiles/cmTC_30d6e.dir/CheckFunctionExists.c.o  -o cmTC_30d6e /usr/local/lib/libopenblas.a /usr/lib/x86_64-linux-gnu/libf77blas.so /usr/lib/x86_64-linux-gnu/libatlas.so 
+Building C object CMakeFiles/cmTC_c6023.dir/CheckFunctionExists.c.o
+/usr/bin/cc   -DCHECK_FUNCTION_EXISTS=cheev_   -o CMakeFiles/cmTC_c6023.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-3.10/Modules/CheckFunctionExists.c
+Linking C executable cmTC_c6023
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_c6023.dir/link.txt --verbose=1
+/usr/bin/cc  -DCHECK_FUNCTION_EXISTS=cheev_    -rdynamic CMakeFiles/cmTC_c6023.dir/CheckFunctionExists.c.o  -o cmTC_c6023 /usr/local/lib/libopenblas.a /usr/lib/x86_64-linux-gnu/libf77blas.so /usr/lib/x86_64-linux-gnu/libatlas.so 
 /usr/local/lib/libopenblas.a(clanhe.f.o): In function `clanhe_':
 clanhe.f:(.text+0x14f): undefined reference to `cabsf'
 clanhe.f:(.text+0x2d4): undefined reference to `cabsf'
@@ -133,10 +133,10 @@ cher2_thread_M.c:(.text+0x5ef): undefined reference to `sqrt'
 ctrmv_thread_NUN.c:(.text+0x551): undefined reference to `sqrt'
 /usr/local/lib/libopenblas.a(ctrmv_thread_NLN.c.o):ctrmv_thread_NLN.c:(.text+0x5f0): more undefined references to `sqrt' follow
 collect2: error: ld returned 1 exit status
-CMakeFiles/cmTC_30d6e.dir/build.make:100: recipe for target 'cmTC_30d6e' failed
-make[1]: *** [cmTC_30d6e] Error 1
+CMakeFiles/cmTC_c6023.dir/build.make:100: recipe for target 'cmTC_c6023' failed
+make[1]: *** [cmTC_c6023] Error 1
 make[1]: Leaving directory '/home/yee/Documents/SMPL++/build/CMakeFiles/CMakeTmp'
-Makefile:126: recipe for target 'cmTC_30d6e/fast' failed
-make: *** [cmTC_30d6e/fast] Error 2
+Makefile:126: recipe for target 'cmTC_c6023/fast' failed
+make: *** [cmTC_c6023/fast] Error 2
 
 

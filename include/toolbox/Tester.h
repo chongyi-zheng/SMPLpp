@@ -31,6 +31,7 @@
 
 //===== INCLUDES ==============================================================
 
+#include <torch/torch.h>
 
 //===== EXTERNAL FORWARD DECLARATIONS =========================================
 
@@ -69,6 +70,9 @@ namespace smpl {
  *      - Tester: <public>
  *          Default constructor.
  * 
+ *      - Tester: <public>
+ *          Constructor to initialize torch device.
+ * 
  *      - Tester: (overload) <public>
  *          Copy constructor.
  * 
@@ -83,6 +87,12 @@ namespace smpl {
  *          Assignment operator is used to copy an tester.
  * 
  *      %%
+ * 
+ *      %
+ *          Setter and Getter
+ *      %
+ *      - setDevice: <public>
+ *          Set the torch device.
  * 
  *      %
  *          Singleton pattern
@@ -133,6 +143,8 @@ class Tester final
 
 private: // PRIVATE ATTRIBUTES
 
+    torch::Device m__device;
+
 protected: // PROTECTED ATTRIBUTES
 
 public: // PUBLIC ATTRIBUTES
@@ -149,7 +161,10 @@ public: // PUBLIC METHODS
     ~Tester() noexcept(true);
 
     // %% Operators %%
-    Tester &operator=(const Tester &tester) noexcept(true);
+    Tester &operator=(const Tester &tester) noexcept(false);
+
+    // %% Setter and Getter %%
+    void setDevice(const torch::Device &device) noexcept(false);
 
     // %% Singleton pattern %%
     void singleton() noexcept(true);

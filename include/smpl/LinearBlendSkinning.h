@@ -31,7 +31,7 @@
 
 //===== INCLUDES ==============================================================
 
-#include <xtensor/xarray.hpp>
+#include <torch/torch.h>
 
 //===== EXTERNAL FORWARD DECLARATIONS =========================================
 
@@ -67,17 +67,20 @@ namespace smpl {
  * 
  * ATTRIBUTES:
  * 
- *      - __restShape: <private>
+ *      - m__device: <private>
+ *          Torch device to run the module, could be CPUs or GPUs.
+ * 
+ *      - m__restShape: <private>
  *          Deformed shape in rest pose, (N, 6890, 3).
  * 
- *      - __transformation: <private>
+ *      - m__transformation: <private>
  *          World transformation expressed in homogeneous coordinates
  *          after eliminating effects of rest pose, (N, 24, 4, 4).
  * 
- *      - __weights: <private>
+ *      - m__weights: <private>
  *          Weights for linear blend skinning, (6890, 24).
  * 
- *      - __posedVert: <private>
+ *      - m__posedVert: <private>
  *           Vertex locations of the new pose, (N, 6890, 3).
  * 
  * METHODS:
@@ -89,7 +92,8 @@ namespace smpl {
  *          Default constructor.
  * 
  *      - LinearBlendSkinning: (overload) <public>
- *          Constructor to initialize weights for linear blend skinning.
+ *          Constructor to initialize weights and torch device for linear 
+ *          blend skinning.
  * 
  *      - LinearBlendSkinning: (overload) <public>
  *          Copy constructor.
@@ -108,6 +112,9 @@ namespace smpl {
  *      %
  *          Getter and Setter
  *      %
+ *      - setDevice: <public>
+ *          Set the torch device.
+ * 
  *      - setRestShape: <public>
  *          Set the deformed shape in rest pose.
  * 
@@ -143,10 +150,12 @@ class LinearBlendSkinning final
 
 private: // PIRVATE ATTRIBUTES
 
-    xt::xarray<double> __restShape;
-    xt::xarray<double> __transformation;
-    xt::xarray<double> __weights;
-    xt::xarray<double> __posedVert;
+    torch::Device m__device;
+
+    torch::Tensor m__restShape;
+    torch::Tensor m__transformation;
+    torch::Tensor m__weights;
+    torch::Tensor m__posedVert;
 
 protected: // PROTECTED ATTRIBUTES
 
@@ -155,8 +164,8 @@ public: // PUBLIC ATTRIBUTES
 private: // PRIVATE METHODS
 
     // %% Linear Blend Skinning %%
-    xt::xarray<double> cart2homo(xt::xarray<double> cart) noexcept(false);
-    xt::xarray<double> homo2cart(xt::xarray<double> homo) noexcept(false);
+    torch::Tensor cart2homo(torch::Tensor &cart) noexcept(false);
+    torch::Tensor homo2cart(torch::Tensor &homo) noexcept(false);
 
 protected: // PROTECTED METHODS
 
@@ -164,7 +173,8 @@ public: // PUBLIC METHODS
 
     // %% Constructor and Deconstructor %%
     LinearBlendSkinning() noexcept(true);
-    LinearBlendSkinning(xt::xarray<double> weights) noexcept(false);
+    LinearBlendSkinning(torch::Tensor &weights, 
+        torch::Device &device) noexcept(false);
     LinearBlendSkinning(const LinearBlendSkinning &linearBlendSkinning)
         noexcept(false);
     ~LinearBlendSkinning() noexcept(true);
@@ -174,11 +184,13 @@ public: // PUBLIC METHODS
         const LinearBlendSkinning &linearBlendSkinning) noexcept(false);
 
     // %% Setter and Getter %%
-    void setWeight(xt::xarray<double> weights) noexcept(false);
-    void setRestShape(xt::xarray<double> restShape) noexcept(false);
-    void setTransformation(xt::xarray<double> transformation) noexcept(false);
+    void setDevice(const torch::Device &device) noexcept(false);
+    void setWeight(const torch::Tensor &weights) noexcept(false);
+    void setRestShape(const torch::Tensor &restShape) noexcept(false);
+    void setTransformation(
+        const torch::Tensor &transformation) noexcept(false);
 
-    xt::xarray<double> getVertex() noexcept(false);
+    torch::Tensor getVertex() noexcept(false);
 
     // %% Linear Blend Skinning %%
     void skinning() noexcept(false);
