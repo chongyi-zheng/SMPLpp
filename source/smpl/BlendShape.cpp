@@ -179,7 +179,7 @@ BlendShape::BlendShape(const BlendShape &blendShape) noexcept(false) :
  * Brief
  * ----------
  * 
- *      Deconstructor.
+ *      Destructor.
  * 
  * Arguments
  * ----------
@@ -799,7 +799,7 @@ torch::Tensor BlendShape::rodrigues(torch::Tensor &theta)
     noexcept(false)
 {
     if (theta.sizes() !=
-        torch::IntArrayRef({BATCH_SIZE, 24, 3})) {
+        torch::IntArrayRef({BATCH_SIZE, JOINT_NUM, 3})) {
         throw smpl_error("BlendShape", "Cannot do arbitrary rotation!");
     }
 
@@ -961,5 +961,5 @@ torch::Tensor BlendShape::unroll(torch::Tensor &rotation)
 }
 
 //=============================================================================
-} // namespace SMPL
+} // namespace smpl
 //=============================================================================

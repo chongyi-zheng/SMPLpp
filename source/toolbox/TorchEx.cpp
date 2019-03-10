@@ -97,7 +97,7 @@ TorchEx::TorchEx(const TorchEx &TorchEx) noexcept(false)
  * Brief
  * ----------
  * 
- *      Deconstructor.
+ *      Destructor.
  * 
  * Argument:
  * ---------
@@ -110,7 +110,7 @@ TorchEx::TorchEx(const TorchEx &TorchEx) noexcept(false)
  */
 TorchEx::~TorchEx() noexcept(false)
 {
-    throw smpl_error("TorchEx", "Cannot call the deconstructor!");
+    throw smpl_error("TorchEx", "Cannot call the Destructor!");
 }
 
 /**operator=

@@ -94,7 +94,7 @@ namespace smpl {
  * METHODS:
  * 
  *      %
- *          Constructor and Deconstructor
+ *          Constructor and Destructor
  *      %
  *      - Exception: <public>
  *          Constructor to create an exception instance.
@@ -103,7 +103,7 @@ namespace smpl {
  *          Copy constructor.
  * 
  *      - ~Exception: <public> <virtual/top>
- *          Deconstructor.
+ *          Destructor.
  *      %%
  * 
  *      %
@@ -150,7 +150,7 @@ protected: // PROTECTED METHODS
 
 public: // PUBLIC METHODS
 
-    // %% Constructor and Deconstructor %%
+    // %% Constructor and Destructor %%
     Exception(const std::string module, const std::string error,
         const std::string function, const std::string file, const int line)
         noexcept(true);

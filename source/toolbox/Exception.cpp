@@ -124,7 +124,7 @@ Exception::Exception(const Exception &exception) noexcept(true)
  * Brief
  * ----------
  * 
- *      Deconstructor.
+ *      Destructor.
  * 
  * Arguments
  * ----------

@@ -65,7 +65,7 @@ namespace smpl {
  * METHODS:
  * 
  *      %
- *          Constructor and Deconstructor
+ *          Constructor and Destructor
  *      %
  *      - Tester: <public>
  *          Default constructor.
@@ -77,7 +77,7 @@ namespace smpl {
  *          Copy constructor.
  * 
  *      - ~Tester: <public>
- *          ~Deconstructor.
+ *          ~Destructor.
  *      %%
  * 
  *      %
@@ -155,7 +155,7 @@ protected: // PROTECTED METHODS
 
 public: // PUBLIC METHODS
 
-    // %% Constructor and Deconstructor %%
+    // %% Constructor and Destructor %%
     Tester() noexcept(true);
     Tester(const Tester &tester) noexcept(true);
     ~Tester() noexcept(true);

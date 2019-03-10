@@ -173,7 +173,7 @@ JointRegression::JointRegression(const JointRegression &jointRegression)
  * Brief
  * ----------
  * 
- *      Deconstructor.
+ *      Destructor.
  * 
  * Arguments
  * ----------

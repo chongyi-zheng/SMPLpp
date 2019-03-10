@@ -85,7 +85,7 @@ namespace smpl {
  * METHODS:
  * 
  *      %
- *          Constructor and Deconstructor
+ *          Constructor and Destructor
  *      %
  *      - WorldTransformation: <public>
  *          Default constructor.
@@ -97,7 +97,7 @@ namespace smpl {
  *          Copy constructor.
  * 
  *      - ~WorldTransformation: <public>
- *          Deconstructor.
+ *          Destructor.
  * 
  *      %%
  * 
@@ -182,7 +182,7 @@ protected: // PROTECTED METHODS
 
 public: // PUBLIC METHODS
 
-    // %% Constructor and Deconstructor %%
+    // %% Constructor and Destructor %%
     WorldTransformation() noexcept(true);
     WorldTransformation(torch::Tensor &kineTree, 
         torch::Device &device) noexcept(false);

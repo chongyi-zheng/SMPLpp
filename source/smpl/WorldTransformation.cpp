@@ -161,7 +161,7 @@ WorldTransformation::WorldTransformation(
  * Brief
  * ----------
  * 
- *      Deconstructor.
+ *      Destructor.
  * 
  * Arguments
  * ----------

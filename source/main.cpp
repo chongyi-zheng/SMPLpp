@@ -86,7 +86,7 @@ int main(int argc, char const *argv[])
 		std::cout << "Time duration to load SMPL: " 
 			<< (double)duration.count() / 1000 << " s" << std::endl;
 
-		const int64_t LOOPS = 10;
+		const int64_t LOOPS = 100;
 		duration = std::chrono::duration_cast<ms>(end - end);// reset duration
 		for (int64_t i = 0; i < LOOPS; i++) {
 			begin = clk::now();

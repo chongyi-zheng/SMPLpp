@@ -171,7 +171,7 @@ SMPL::SMPL(const SMPL& smpl) noexcept(false) :
  * Brief
  * ----------
  * 
- *      Deconstructor
+ *      Destructor
  * 
  * Arguments
  * ----------
@@ -197,7 +197,7 @@ SMPL::~SMPL() noexcept(true)
  * ----------
  * 
  *      @smpl: - const SMPL& -
- *          The <LinearBlendSkinning> instantiation to copy with.
+ *          The <SMPL> instantiation to copy with.
  * 
  * Return
  * ----------
@@ -690,17 +690,11 @@ void SMPL::out(int64_t index) noexcept(false)
 {
     torch::Tensor vertices = 
         m__skinner.getVertex().clone().to(m__device);// (N, 6890, 3)
-    
-    xt::xarray<int32_t> faceIndices;
-    torch::Tensor faceIndices_;
-    xt::from_json(m__model["face_indices"], faceIndices);
-    faceIndices_ = torch::from_blob(faceIndices.data(),
-        {FACE_INDEX_NUM, 3}).to(m__device);// (13776, 3)
 
     if (vertices.sizes() ==
             torch::IntArrayRef(
                 {BATCH_SIZE, VERTEX_NUM, 3})
-        && faceIndices_.sizes() ==
+        && m__faceIndices.sizes() ==
             torch::IntArrayRef(
                 {FACE_INDEX_NUM, 3})
         ) {
@@ -712,20 +706,19 @@ void SMPL::out(int64_t index) noexcept(false)
             (float *)slice_.to(torch::kCPU).data_ptr(),
             xt::xarray<float>::shape_type({(const size_t)VERTEX_NUM, 3})
         );
+        
+        xt::xarray<int32_t> faceIndices;
+        faceIndices = xt::adapt(
+            (int32_t *)m__faceIndices.to(torch::kCPU).data_ptr(),
+            xt::xarray<int32_t>::shape_type(
+                {(const size_t)FACE_INDEX_NUM, 3})
+        );
+
         for (int64_t i = 0; i < VERTEX_NUM; i++) {
             file << 'v' << ' '
                 << slice(i, 0) << ' '
                 << slice(i, 1) << ' ' 
                 << slice(i, 2) << '\n';
-                // << TorchEx::indexing(slice,
-                //         torch::IntList({i}),
-                //         torch::IntList({0})) << ' '
-                // << TorchEx::indexing(slice,
-                //         torch::IntList({i}),
-                //         torch::IntList({1})) << ' '
-                // << TorchEx::indexing(slice,
-                //         torch::IntList({i}),
-                //         torch::IntList({2})) << '\n';
         }
 
         for (int64_t i = 0; i < FACE_INDEX_NUM; i++) {
@@ -733,15 +726,6 @@ void SMPL::out(int64_t index) noexcept(false)
                 << faceIndices(i, 0) << ' '
                 << faceIndices(i, 1) << ' '
                 << faceIndices(i, 2) << '\n';
-                // << TorchEx::indexing(faceIndices,
-                //         torch::IntList({i}),
-                //         torch::IntList({0})) << ' '
-                // << TorchEx::indexing(faceIndices,
-                //         torch::IntList({i}),
-                //         torch::IntList({1})) << ' '
-                // << TorchEx::indexing(faceIndices,
-                //         torch::IntList({i}),
-                //         torch::IntList({2})) << '\n';
         }
     }
     else {

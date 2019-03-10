@@ -70,7 +70,7 @@ namespace smpl {
  * METHODS:
  * 
  *      %
- *          Constructor and Deconstructor
+ *          Constructor and Destructor
  *      %
  *      - TorchEx: <private>
  *          Default constructor.
@@ -79,7 +79,7 @@ namespace smpl {
  *          Copy constructor.
  * 
  *      - ~TorchEx: <private>
- *          Deconstructor.
+ *          Destructor.
  *      %%
  * 
  *      %
@@ -111,7 +111,7 @@ class TorchEx final
 
 private: // PRIVATE ATTRIBUTES
 
-    // %% Constructor and Deconstructor %%
+    // %% Constructor and Destructor %%
     TorchEx() noexcept(false);
     TorchEx(const TorchEx &TorchEx) noexcept(false);
     ~TorchEx() noexcept(false);

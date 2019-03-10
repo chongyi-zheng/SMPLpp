@@ -156,7 +156,7 @@ LinearBlendSkinning::LinearBlendSkinning(
  * Brief
  * ----------
  * 
- *      Deconstructor.
+ *      Destructor.
  * 
  * Arguments
  * ----------

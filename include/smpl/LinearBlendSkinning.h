@@ -86,7 +86,7 @@ namespace smpl {
  * METHODS:
  * 
  *      %
- *          Constructor and Deconstructor
+ *          Constructor and Destructor
  *      %
  *      - LinearBlendSkinning: <public>
  *          Default constructor.
@@ -99,7 +99,7 @@ namespace smpl {
  *          Copy constructor.
  * 
  *      - ~LinearBlendSkinning: <public>
- *          Deconstructor.
+ *          Destructor.
  *      %%
  * 
  *      %
@@ -171,7 +171,7 @@ protected: // PROTECTED METHODS
 
 public: // PUBLIC METHODS
 
-    // %% Constructor and Deconstructor %%
+    // %% Constructor and Destructor %%
     LinearBlendSkinning() noexcept(true);
     LinearBlendSkinning(torch::Tensor &weights, 
         torch::Device &device) noexcept(false);

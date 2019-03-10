@@ -88,7 +88,7 @@ namespace smpl {
  * METHODS:
  * 
  *      %
- *          Constructor and deconstructor.
+ *          Constructor and Destructor.
  *      %
  *      - JointRegression: <public>
  *          Default constructor.
@@ -101,7 +101,7 @@ namespace smpl {
  *          Copy constructor.
  * 
  *      - ~JointRegression: <public>
- *          Deconstructor.
+ *          Destructor.
  *      %%
  * 
  *      %
@@ -188,7 +188,7 @@ protected: // PROTECTED METHODS
 
 public: // PUBLIC METHODS
 
-    // %% Constructor and Deconstructor %%
+    // %% Constructor and Destructor %%
     JointRegression() noexcept(true);
     JointRegression(torch::Tensor &jointRegressor, 
         torch::Tensor &templateRestShape, 

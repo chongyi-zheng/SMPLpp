@@ -62,13 +62,13 @@ namespace smpl {
  * 
  * ATTRIBUTES:
  * 
- *      - mm__singleton: <private>
+ *      - m__singleton: <private>
  *          The only instantiation.
  * 
  * METHODS:
  * 
  *      %
- *          Constructor and deconstructor
+ *          Constructor and Destructor
  *      %
  *      - Singleton: <private>
  *          Default constructor.
@@ -77,7 +77,7 @@ namespace smpl {
  *          Copy constructor.
  * 
  *      - ~Singleton: <private>
- *          Deconstructor.
+ *          Destructor.
  *      %%
  *      
  *      %
@@ -106,7 +106,7 @@ class Singleton final
 
 private: // PRIVATE ATTRIBUTES
 
-    static T *mm__singleton;
+    static T *m__singleton;
 
 protected: // PROTECTED ATTRIBUTES
 
@@ -114,7 +114,7 @@ public: // PUBLIC ATTRIBUTES
 
 private: // PRIVATE METHODS
 
-    // %% Constructor and deconstructor %%
+    // %% Constructor and Destructor %%
     Singleton() noexcept(false);
     Singleton(const Singleton<T> &singleton) noexcept(false);
     ~Singleton() noexcept(false);
@@ -135,7 +135,7 @@ public: // PUBLIC METHODS
 //===== INTERNAL AFTERWARDS DECLARATIONS ======================================
 
 template <class T>
-T *Singleton<T>::mm__singleton = nullptr;
+T *Singleton<T>::m__singleton = nullptr;
 
 //===== CLASS IMPLEMENTATIONS =================================================
 
@@ -190,7 +190,7 @@ Singleton<T>::Singleton(const Singleton<T> &singleton) noexcept(false)
  * Brief
  * ----------
  * 
- *      Deconstructor.
+ *      Destructor.
  * 
  * Arguments
  * ----------
@@ -204,7 +204,7 @@ Singleton<T>::Singleton(const Singleton<T> &singleton) noexcept(false)
 template <class T>
 Singleton<T>::~Singleton() noexcept(false)
 {
-    throw smpl_error("Singleton", "Cannot call the deconstructor!");
+    throw smpl_error("Singleton", "Cannot call the Destructor!");
 }
 
 /**operator=
@@ -250,18 +250,18 @@ Singleton<T> &Singleton<T>::operator=(const Singleton<T> &singleton)
  * Return
  * ----------
  * 
- *      @mm__singleton:
+ *      @m__singleton:
  *          The only instantiation.
  * 
  */
 template <class T>
 T *Singleton<T>::get() noexcept(true)
 {
-    if (!mm__singleton) {
-        mm__singleton = new T;
+    if (!m__singleton) {
+        m__singleton = new T;
     }
 
-    return mm__singleton;
+    return m__singleton;
 }
 
 /**destroy
@@ -283,8 +283,8 @@ T *Singleton<T>::get() noexcept(true)
 template <class T>
 void Singleton<T>::destroy() noexcept(true)
 {
-    if (mm__singleton) {
-        delete mm__singleton;
+    if (m__singleton) {
+        delete m__singleton;
     }
 
     return;

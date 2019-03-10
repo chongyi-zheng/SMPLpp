@@ -125,7 +125,7 @@ namespace smpl {
  * METHODS:
  * 
  *      %
- *          Constructor and Deconstructor.
+ *          Constructor and Destructor.
  *      %
  *      - SMPL: <public>
  *          Default constructor.
@@ -138,7 +138,7 @@ namespace smpl {
  *          Copy constructor.
  * 
  *      - ~SMPL: <public>
- *          Deconstructor.
+ *          Destructor.
  *      %%
  * 
  *      %
@@ -222,7 +222,7 @@ protected: // PROTECTED METHODS
 
 public: // PUBLIC METHODS
 
-    // %% Constructor and Deconstructor %%
+    // %% Constructor and Destructor %%
     SMPL() noexcept(true);
     SMPL(std::string &modelPath, 
         std::string &vertPath, torch::Device &device) noexcept(false);

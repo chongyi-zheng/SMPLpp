@@ -66,53 +66,53 @@ torch/torch.h
 toolbox/Exception.h
 ../include/toolbox/toolbox/Exception.h
 
-/home/yee/Documents/SMPL++/source/definition/def.cpp
+/home/yee/Documents/Projects/SMPL++/source/definition/def.cpp
 definition/def.h
-/home/yee/Documents/SMPL++/source/definition/definition/def.h
+/home/yee/Documents/Projects/SMPL++/source/definition/definition/def.h
 
-/home/yee/Documents/SMPL++/source/main.cpp
+/home/yee/Documents/Projects/SMPL++/source/main.cpp
 chrono
 -
 torch/torch.h
 -
 definition/def.h
-/home/yee/Documents/SMPL++/source/definition/def.h
+/home/yee/Documents/Projects/SMPL++/source/definition/def.h
 toolbox/Singleton.hpp
-/home/yee/Documents/SMPL++/source/toolbox/Singleton.hpp
+/home/yee/Documents/Projects/SMPL++/source/toolbox/Singleton.hpp
 toolbox/Tester.h
-/home/yee/Documents/SMPL++/source/toolbox/Tester.h
+/home/yee/Documents/Projects/SMPL++/source/toolbox/Tester.h
 smpl/SMPL.h
-/home/yee/Documents/SMPL++/source/smpl/SMPL.h
+/home/yee/Documents/Projects/SMPL++/source/smpl/SMPL.h
 
-/home/yee/Documents/SMPL++/source/smpl/BlendShape.cpp
+/home/yee/Documents/Projects/SMPL++/source/smpl/BlendShape.cpp
 definition/def.h
-/home/yee/Documents/SMPL++/source/smpl/definition/def.h
+/home/yee/Documents/Projects/SMPL++/source/smpl/definition/def.h
 toolbox/TorchEx.hpp
-/home/yee/Documents/SMPL++/source/smpl/toolbox/TorchEx.hpp
+/home/yee/Documents/Projects/SMPL++/source/smpl/toolbox/TorchEx.hpp
 toolbox/Exception.h
-/home/yee/Documents/SMPL++/source/smpl/toolbox/Exception.h
+/home/yee/Documents/Projects/SMPL++/source/smpl/toolbox/Exception.h
 smpl/BlendShape.h
-/home/yee/Documents/SMPL++/source/smpl/smpl/BlendShape.h
+/home/yee/Documents/Projects/SMPL++/source/smpl/smpl/BlendShape.h
 
-/home/yee/Documents/SMPL++/source/smpl/JointRegression.cpp
+/home/yee/Documents/Projects/SMPL++/source/smpl/JointRegression.cpp
 definition/def.h
-/home/yee/Documents/SMPL++/source/smpl/definition/def.h
+/home/yee/Documents/Projects/SMPL++/source/smpl/definition/def.h
 toolbox/Exception.h
-/home/yee/Documents/SMPL++/source/smpl/toolbox/Exception.h
+/home/yee/Documents/Projects/SMPL++/source/smpl/toolbox/Exception.h
 smpl/JointRegression.h
-/home/yee/Documents/SMPL++/source/smpl/smpl/JointRegression.h
+/home/yee/Documents/Projects/SMPL++/source/smpl/smpl/JointRegression.h
 
-/home/yee/Documents/SMPL++/source/smpl/LinearBlendSkinning.cpp
+/home/yee/Documents/Projects/SMPL++/source/smpl/LinearBlendSkinning.cpp
 definition/def.h
-/home/yee/Documents/SMPL++/source/smpl/definition/def.h
+/home/yee/Documents/Projects/SMPL++/source/smpl/definition/def.h
 toolbox/Exception.h
-/home/yee/Documents/SMPL++/source/smpl/toolbox/Exception.h
+/home/yee/Documents/Projects/SMPL++/source/smpl/toolbox/Exception.h
 toolbox/TorchEx.hpp
-/home/yee/Documents/SMPL++/source/smpl/toolbox/TorchEx.hpp
+/home/yee/Documents/Projects/SMPL++/source/smpl/toolbox/TorchEx.hpp
 smpl/LinearBlendSkinning.h
-/home/yee/Documents/SMPL++/source/smpl/smpl/LinearBlendSkinning.h
+/home/yee/Documents/Projects/SMPL++/source/smpl/smpl/LinearBlendSkinning.h
 
-/home/yee/Documents/SMPL++/source/smpl/SMPL.cpp
+/home/yee/Documents/Projects/SMPL++/source/smpl/SMPL.cpp
 fstream
 -
 experimental/filesystem
@@ -124,27 +124,27 @@ xtensor/xadapt.hpp
 xtensor/xjson.hpp
 -
 definition/def.h
-/home/yee/Documents/SMPL++/source/smpl/definition/def.h
+/home/yee/Documents/Projects/SMPL++/source/smpl/definition/def.h
 toolbox/TorchEx.hpp
-/home/yee/Documents/SMPL++/source/smpl/toolbox/TorchEx.hpp
+/home/yee/Documents/Projects/SMPL++/source/smpl/toolbox/TorchEx.hpp
 smpl/SMPL.h
-/home/yee/Documents/SMPL++/source/smpl/smpl/SMPL.h
+/home/yee/Documents/Projects/SMPL++/source/smpl/smpl/SMPL.h
 
-/home/yee/Documents/SMPL++/source/smpl/WorldTransformation.cpp
+/home/yee/Documents/Projects/SMPL++/source/smpl/WorldTransformation.cpp
 definition/def.h
-/home/yee/Documents/SMPL++/source/smpl/definition/def.h
+/home/yee/Documents/Projects/SMPL++/source/smpl/definition/def.h
 toolbox/Exception.h
-/home/yee/Documents/SMPL++/source/smpl/toolbox/Exception.h
+/home/yee/Documents/Projects/SMPL++/source/smpl/toolbox/Exception.h
 toolbox/TorchEx.hpp
-/home/yee/Documents/SMPL++/source/smpl/toolbox/TorchEx.hpp
+/home/yee/Documents/Projects/SMPL++/source/smpl/toolbox/TorchEx.hpp
 smpl/WorldTransformation.h
-/home/yee/Documents/SMPL++/source/smpl/smpl/WorldTransformation.h
+/home/yee/Documents/Projects/SMPL++/source/smpl/smpl/WorldTransformation.h
 
-/home/yee/Documents/SMPL++/source/toolbox/Exception.cpp
+/home/yee/Documents/Projects/SMPL++/source/toolbox/Exception.cpp
 toolbox/Exception.h
-/home/yee/Documents/SMPL++/source/toolbox/toolbox/Exception.h
+/home/yee/Documents/Projects/SMPL++/source/toolbox/toolbox/Exception.h
 
-/home/yee/Documents/SMPL++/source/toolbox/Tester.cpp
+/home/yee/Documents/Projects/SMPL++/source/toolbox/Tester.cpp
 fstream
 -
 xtensor/xarray.hpp
@@ -152,27 +152,27 @@ xtensor/xarray.hpp
 xtensor/xjson.hpp
 -
 definition/def.h
-/home/yee/Documents/SMPL++/source/toolbox/definition/def.h
+/home/yee/Documents/Projects/SMPL++/source/toolbox/definition/def.h
 toolbox/Tester.h
-/home/yee/Documents/SMPL++/source/toolbox/toolbox/Tester.h
+/home/yee/Documents/Projects/SMPL++/source/toolbox/toolbox/Tester.h
 toolbox/TorchEx.hpp
-/home/yee/Documents/SMPL++/source/toolbox/toolbox/TorchEx.hpp
+/home/yee/Documents/Projects/SMPL++/source/toolbox/toolbox/TorchEx.hpp
 toolbox/Exception.h
-/home/yee/Documents/SMPL++/source/toolbox/toolbox/Exception.h
+/home/yee/Documents/Projects/SMPL++/source/toolbox/toolbox/Exception.h
 toolbox/Singleton.hpp
-/home/yee/Documents/SMPL++/source/toolbox/toolbox/Singleton.hpp
+/home/yee/Documents/Projects/SMPL++/source/toolbox/toolbox/Singleton.hpp
 smpl/BlendShape.h
-/home/yee/Documents/SMPL++/source/toolbox/smpl/BlendShape.h
+/home/yee/Documents/Projects/SMPL++/source/toolbox/smpl/BlendShape.h
 smpl/JointRegression.h
-/home/yee/Documents/SMPL++/source/toolbox/smpl/JointRegression.h
+/home/yee/Documents/Projects/SMPL++/source/toolbox/smpl/JointRegression.h
 smpl/WorldTransformation.h
-/home/yee/Documents/SMPL++/source/toolbox/smpl/WorldTransformation.h
+/home/yee/Documents/Projects/SMPL++/source/toolbox/smpl/WorldTransformation.h
 smpl/LinearBlendSkinning.h
-/home/yee/Documents/SMPL++/source/toolbox/smpl/LinearBlendSkinning.h
+/home/yee/Documents/Projects/SMPL++/source/toolbox/smpl/LinearBlendSkinning.h
 
-/home/yee/Documents/SMPL++/source/toolbox/TorchEx.cpp
+/home/yee/Documents/Projects/SMPL++/source/toolbox/TorchEx.cpp
 toolbox/TorchEx.hpp
-/home/yee/Documents/SMPL++/source/toolbox/toolbox/TorchEx.hpp
+/home/yee/Documents/Projects/SMPL++/source/toolbox/toolbox/TorchEx.hpp
 
 /usr/local/cuda-10.0/include/cuda.h
 stdlib.h
@@ -673,13 +673,15 @@ condition_variable
 -
 type_traits
 -
+ATen/core/blob.h
+-
+ATen/core/interned_strings.h
+-
 c10/core/Scalar.h
 -
 c10/core/TensorImpl.h
 -
 c10/core/UndefinedTensorImpl.h
--
-ATen/core/blob.h
 -
 c10/util/intrusive_ptr.h
 -
@@ -687,19 +689,21 @@ ATen/core/Tensor.h
 -
 
 /usr/local/include/ATen/core/jit_type.h
-ATen/core/ivalue.h
--
-ATen/core/interned_strings.h
--
-ATen/core/functional.h
+ATen/core/TensorMethods.h
 -
 ATen/core/Type.h
 -
-ATen/core/TensorMethods.h
+ATen/core/functional.h
+-
+ATen/core/interned_strings.h
+-
+ATen/core/ivalue.h
 -
 c10/util/TypeList.h
 -
 caffe2/core/common.h
+-
+c10/util/Optional.h
 -
 memory
 -
@@ -1018,6 +1022,8 @@ c10/util/SmallVector.h
 c10/util/C++17.h
 -
 c10/util/Exception.h
+-
+c10/util/Deprecated.h
 -
 array
 -
@@ -1455,6 +1461,8 @@ type_traits
 -
 utility
 -
+iterator
+-
 type_traits
 -
 exception
@@ -1462,6 +1470,8 @@ exception
 stdexcept
 -
 string
+-
+cstddef
 -
 array
 -
@@ -1515,6 +1525,8 @@ string
 -
 iterator
 -
+tuple
+-
 cassert
 -
 cstddef
@@ -1534,6 +1546,8 @@ string
 type_traits
 -
 utility
+-
+cstdio
 -
 clocale
 -
@@ -1564,6 +1578,8 @@ utility
 cstdint
 -
 utility
+-
+cassert
 -
 cstddef
 -
@@ -1671,9 +1687,15 @@ cstdint
 -
 cstring
 -
+limits
+-
+type_traits
+-
 initializer_list
 -
 utility
+-
+algorithm
 -
 cassert
 -
@@ -1806,6 +1828,8 @@ unordered_map
 iostream
 -
 list
+-
+deque
 -
 valarray
 -
@@ -2165,6 +2189,8 @@ torch/data/samplers/base.h
 -
 torch/data/samplers/custom_batch_request.h
 -
+torch/data/samplers/distributed.h
+-
 torch/data/samplers/random.h
 -
 torch/data/samplers/sequential.h
@@ -2190,6 +2216,16 @@ mutex
 cstddef
 -
 torch/csrc/WindowsTorchApiMacro.h
+-
+
+/usr/local/include/torch/csrc/api/include/torch/data/samplers/distributed.h
+torch/csrc/WindowsTorchApiMacro.h
+-
+torch/data/samplers/base.h
+-
+cstddef
+-
+vector
 -
 
 /usr/local/include/torch/csrc/api/include/torch/data/samplers/random.h
@@ -2373,9 +2409,9 @@ utility
 -
 
 /usr/local/include/torch/csrc/api/include/torch/nn/init.h
-torch/types.h
--
 torch/csrc/WindowsTorchApiMacro.h
+-
+torch/types.h
 -
 
 /usr/local/include/torch/csrc/api/include/torch/nn/module.h
@@ -2983,6 +3019,8 @@ torch/csrc/WindowsTorchApiMacro.h
 -
 ATen/core/ivalue.h
 -
+ATen/core/jit_type.h
+-
 torch/csrc/jit/scope.h
 -
 torch/csrc/jit/source_range.h
@@ -3061,9 +3099,9 @@ vector
 /usr/local/include/torch/csrc/jit/named_value.h
 ATen/ATen.h
 -
-torch/csrc/jit/constants.h
--
 ATen/core/ivalue.h
+-
+torch/csrc/jit/constants.h
 -
 torch/csrc/jit/source_range.h
 -
@@ -3237,6 +3275,8 @@ ATen/Backtrace.h
 -
 ATen/core/functional.h
 -
+ATen/core/stack.h
+-
 c10/util/Exception.h
 -
 torch/csrc/WindowsTorchApiMacro.h
@@ -3248,8 +3288,6 @@ torch/csrc/autograd/variable.h
 torch/csrc/jit/constants.h
 -
 torch/csrc/jit/ir.h
--
-ATen/core/stack.h
 -
 torch/csrc/jit/tracing_state.h
 -
@@ -4122,6 +4160,8 @@ cstddef
 iterator
 -
 
+/usr/local/include/xtl/xmasked_value_meta.hpp
+
 /usr/local/include/xtl/xmeta_utils.hpp
 cstddef
 -
@@ -4141,12 +4181,22 @@ utility
 -
 nlohmann/json.hpp
 -
+xoptional_meta.hpp
+/usr/local/include/xtl/xoptional_meta.hpp
 xclosure.hpp
 /usr/local/include/xtl/xclosure.hpp
-xmeta_utils.hpp
-/usr/local/include/xtl/xmeta_utils.hpp
 xtl_config.hpp
 /usr/local/include/xtl/xtl_config.hpp
+xtype_traits.hpp
+/usr/local/include/xtl/xtype_traits.hpp
+
+/usr/local/include/xtl/xoptional_meta.hpp
+type_traits
+-
+xmasked_value_meta.hpp
+/usr/local/include/xtl/xmasked_value_meta.hpp
+xmeta_utils.hpp
+/usr/local/include/xtl/xmeta_utils.hpp
 xtype_traits.hpp
 /usr/local/include/xtl/xtype_traits.hpp
 
@@ -4210,6 +4260,8 @@ stdexcept
 
 /usr/local/include/xtl/xtype_traits.hpp
 type_traits
+-
+complex
 -
 xtl_config.hpp
 /usr/local/include/xtl/xtl_config.hpp

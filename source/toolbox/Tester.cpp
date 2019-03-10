@@ -111,7 +111,7 @@ Tester::Tester(const Tester &tester) noexcept(true) :
  * Brief
  * ----------
  * 
- *      Deconstructor.
+ *      Destructor.
  * 
  * Arguments
  * ----------

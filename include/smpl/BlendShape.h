@@ -102,7 +102,7 @@ namespace smpl {
  * METHODS:
  * 
  *      %
- *          Constructor and Deconstructor
+ *          Constructor and Destructor
  *      %
  *      - BlendShape: <public>
  *          Default constructor.
@@ -116,7 +116,7 @@ namespace smpl {
  * 
  * 
  *      - ~BlendShape: <public>
- *          Deconstructor.
+ *          Destructor.
  *      %%
  * 
  *      %
@@ -229,7 +229,7 @@ protected: // PROTECTED METHODS
 
 public: // PUBLIC METHODS
 
-    // %% Constructor and Deconstructor %%4
+    // %% Constructor and Destructor %%4
     BlendShape() noexcept(true);
     BlendShape(torch::Tensor &shapeBlendBasis,
         torch::Tensor &poseBlendBasis, torch::Device &device) noexcept(false);
