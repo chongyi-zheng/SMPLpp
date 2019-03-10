@@ -1287,9 +1287,6 @@ void Tester::linearBlendSkinning() noexcept(true)
      *          ]
      *      ]
      * 
-     * 
-     * 
-     * 
      */
 
     torch::Tensor vertices;
