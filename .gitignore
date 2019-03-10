@@ -435,3 +435,11 @@ TSWLatexianTemp*
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
+
+########## DATA ##############################################################
+
+data/*
+
+######### OUTPUTS ############################################################
+
+out/*
