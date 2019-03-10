@@ -1,6 +1,8 @@
 # SMPL++
 
-A C++ version of SMPL - A Skinned Multi-Person Linear Model.
+A C++ Implementation of SMPL - A Skinned Multi-Person Linear Model.
+
+![SMPL_Modle](docs/media/SMPL_model.png)
 
 # Overview
 
