@@ -152,7 +152,7 @@ how the performance will be on other system environments.
   These command will produce a executable program named "smplpp". To run it, 
   just type
 
-      ./smpl
+      ./smplpp
   
   in the terminal.
 
