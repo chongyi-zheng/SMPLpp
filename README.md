@@ -12,13 +12,17 @@ available at smpl.is.tue.mpg.de/.
 
 The author-provided implementation based on `chumpy` and `opendr` contains
 spaghetti code,
-and it cannot run on GPUs yet. I convert another Tensorflow version of SMPL contributed by [CalciferZh](https://github.com/CalciferZh) to C++ style in
-this project.
-You can find it [here](https://github.com/CalciferZh/SMPL).
-However, Tensorflow C++ APIs are not user-friendly, so I choose the Pytorch C++ APIs - libTorch - instead.
+and it cannot run on GPUs yet. I convert and modify another Tensorflow 
+version of SMPL contributed by [CalciferZh](https://github.com/CalciferZh) to 
+C++ style.
+You can find the Tensorflow implementation 
+[here](https://github.com/CalciferZh/SMPL).
+However, Tensorflow C++ APIs are not user-friendly, so I choose the Pytorch 
+C++ APIs - libTorch - instead.
 
-For more details, see the [paper](http://files.is.tue.mpg.de/black/papers/SMPL2015.pdf) published by Max Planck Institute for
-Intelligent Systems on SIGGRAPH ASIA 2015.
+For more details, see the [paper](http://files.is.tue.mpg.de/black/papers/SMPL2015.pdf) 
+published by Max Planck Institute for Intelligent Systems on SIGGRAPH ASIA 
+2015.
 
 ## Prerequisite
 
@@ -35,39 +39,130 @@ how the performance will be on other system environments.
 
 - Packages
 
-  - [xtensor](https://github.com/QuantStack/xtensor): A C++ library meant for numerical analysis with multi-dimensional array expressions. 
+1. [xtensor](https://github.com/QuantStack/xtensor): A C++ library meant for 
+   numerical analysis with multi-dimensional array expressions. 
   
-    This library are inspired by `NumPy` such that you can even find functions with same names in it.
-    There is also a cheat sheet from `Numpy` to `xtensor` in its [documentation](https://xtensor.readthedocs.io/en/latest/).
+    This library are inspired by `numpy` such that you can even find 
+    functions with same names in it.
+    There is also a cheat sheet from `numpy` to `xtensor` in its 
+    [documentation](https://xtensor.readthedocs.io/en/latest/).
 
-    Currently, I only use `xtensor` as a IO interface to define random inputs for module test and restore hyperparameters from JSON format. The data in the buffer of a `xtensor` array can be fed into a corresponding "torch tensor" later.
+    Currently, I only use `xtensor` as a IO interface to define random inputs 
+    for module test and restore hyperparameters from JSON format. The data in 
+    the buffer of a `xtensor` array can be fed into a corresponding "torch 
+    tensor" later.
   
-  - [nlohmann_json](https://github.com/nlohmann/json): JSON for Modern C++.
+2. [nlohmann_json](https://github.com/nlohmann/json): JSON for Modern C++.
 
-    `xtensor` loads and dumps data to json, using the json library written by nlohmann.
+    `xtensor` loads and dumps data to json, using the json library written by 
+    nlohmann.
 
-  - [libTorch](https://pytorch.org/cppdocs/): Pytorch C++ API.
+3. [libTorch](https://pytorch.org/get-started/locally/): Pytorch C++ API.
 
-    PyTorch C++ API simplifies tensor computing and introduces GPU acceleration to this work, using CUDA and cuDNN.
+    PyTorch C++ API simplifies tensor computing and introduces GPU 
+    acceleration to this work, using `CUDA` and `cuDNN`.
 
     Note: I installed nightly version of `libTorch` with `CUDA 10.0` support.
 
-  - [CUDA](https://developer.nvidia.com/cuda-downloads): NVIDIA parallel computing platform.
+4. [CUDA](https://developer.nvidia.com/cuda-downloads): NVIDIA parallel 
+   computing platform.
   
-    Version 10.0 has been tested on my machine, but I think the corresponding versions within the `libTorch` download list are all available.
+    Version 10.0 has been tested on my machine, but I think the corresponding 
+    versions within the `libTorch` download list are all available.
 
-  - [CMake](https://cmake.org/download/): Tool to build, test and package a C++ software.
+5. [CMake](https://cmake.org/download/): A tool to build, test and package 
+   C++ softwares.
   
-    The `CMake` installed through `apt` is `CMake 3.5.1` which causes a failure when `libTorch` tries to find `CUDA`. Here is a [description](https://discuss.pytorch.org/t/install-libtorch-error-pytorch-c-api/26756/2) about the problem.
+    The `CMake` installed by `apt-get` is `CMake 3.5.1` which causes a 
+    failure when `libTorch` tries to find `CUDA`. Here is a 
+    [description](https://discuss.pytorch.org/t/install-libtorch-error-pytorch-c-api/26756/2) 
+    about the problem.
   
-    You should update it to a newer version, say 3.13.4.
-    You can delete the old `CMake`, download the newer source code on official website and build it from scratch.  
+    You should update it to a newer version, say 3.13.4 (>=3.12.2 should work).
+    Delete the old `CMake`, download a newer source code on official website 
+    and build it from scratch.
 
 ## Usage
 
+- Package Installation
+
+  I only want to talk about tricks to install packages into root directory 
+  correctly. If you want to link packages manually, just skip this part and 
+  install in the normal ways.
+
+  To install packages successfully, follow the instructions in their official 
+  documentations or just search on google.
+
+  - Source Code
+
+    Compile libraries and headers into root directory, e.g. `xtensor`:
+
+  1. change to `xtensor` repo that you have cloned from github.
+
+          cd <xtensor-dir>
+
+  2. create a directory to compile the package and change to it.
+
+          mkdir build
+          cd build
+
+  3. configure `CMake` and generate makefiles. Remember to attach the
+     installation directory to the root.
+
+          cmake -D CMAKE_INSTALL_PREFIX=/usr/local ..
+
+      You can change "/usr/local" to other root location as long as `CMake` 
+      is able to find the package automatically.
+
+  4. compile and install.
+
+          make
+          sudo make install
+
+  - Binary Library
+    
+    Move pre-built packages into root directory, e.g. `libTorch`:
+
+  1. change to `libTorch` directory.
+
+          cd <libTorch-dir>
+
+  2. copy `CMake` configurations to "lib" directory.
+
+          cp -rv share/cmake lib
+
+  3. copy headers and libraries to root directory.
+
+          cp -rv include lib /usr/local
+
+      Afterwards, you don't need to specify path to the `libTorch` library 
+      when building `libTorch`-dependent projects with `CMake`. This trick 
+      is a little bit different from the guide in official `libTorch` 
+      documentation.
+
+- Build and Run
+
+  After installing all packages, you can compile SMPL++ from source:
+
+      mkdir build
+      cd build
+      cmake ..
+      make
+
+  These command will produce a executable program named "smplpp". To run it, 
+  just type
+
+      ./smpl
+  
+  in the terminal.
+
+  To track the usage of GPU, use following command:
+
+      nvidia-smi -lms
 
 ## Features
 
+beta version.
 
 ## Documentation
 
@@ -76,9 +171,11 @@ how the performance will be on other system environments.
 
 - [ ] Hyperparameters restore from `npz` files instead of `json` files. (`json` neither saves storage nor performances efficiently when being imported.)
 
-- [ ] A OpenGL GUI to render and manipulate the mesh.
+- [ ] A OpenGL GUI to render and manipulate the 3D mesh.
 
 - [ ] Fit the 3D mesh to a 2D image - SMPLify.
+
+- [ ] Export SMPL++ into static or dynamic library.
 
 - [ ] A trainable SMPL.
 
@@ -88,7 +185,7 @@ Note: The importance of each demand decreases in this list.
 
 If you find any problem, error or even typo, feel free to contact me directly.
 
-Currently, this project is for research purpose, any commercial usage should be allowed by original authors.
+Currently, SMPL++ is for research purpose, any commercial usage should be allowed by original authors.
 
 ## Reference
 
@@ -96,7 +193,7 @@ Currently, this project is for research purpose, any commercial usage should be 
 
 [2] Federica Bogo, Angjoo Kanazawa, Christoph Lassner, Peter Gehler, Javier Romero, Michael J. Black. "Keep It SMPL: Automatic Estimation of 3D Human Pose and Shape from a Single Image". Lecture Notes in Computer Science (2016): 561–578. Crossref. Web.
 
-[3] Angjoo Kanazawa, Michael J. Black, David W. Jacobs, Jitendra Malik. "End-to-end Recovery of Human Shape and Pose". Computer Vision and Pattern Regognition (CVPR) 2018.
+[3] Angjoo Kanazawa, Michael J. Black, David W. Jacobs, Jitendra Malik. "End-to-end Recovery of Human Shape and Pose". Computer Vision and Pattern Recognition (CVPR) 2018.
 
 [4] Official Website of SMPL: smpl.is.tue.mpg.de/.
 

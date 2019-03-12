@@ -120,6 +120,6 @@ set(PROJECT_LIBRARIES
 ##
 ## OUTPUTS
 ##
-add_executable(smplpp.out ${HEADER} ${SOURCE})
-target_include_directories(smplpp.out PRIVATE ${PROJECT_INCLUDE_DIRS})
-target_link_libraries(smplpp.out ${PROJECT_LIBRARIES})
+add_executable(smplpp ${HEADER} ${SOURCE})
+target_include_directories(smplpp PRIVATE ${PROJECT_INCLUDE_DIRS})
+target_link_libraries(smplpp ${PROJECT_LIBRARIES})
