@@ -35,33 +35,33 @@ how the performance will be on other system environments.
 
 - Packages
 
-  [xtensor](https://github.com/QuantStack/xtensor): A C++ library meant for numerical analysis with multi-dimensional array expressions. 
+  - [xtensor](https://github.com/QuantStack/xtensor): A C++ library meant for numerical analysis with multi-dimensional array expressions. 
   
-  This library are inspired by `NumPy` such that you can even find functions with same names in it.
-  There is also a cheat sheet from `Numpy` to `xtensor` in its [documentation](https://xtensor.readthedocs.io/en/latest/).
+    This library are inspired by `NumPy` such that you can even find functions with same names in it.
+    There is also a cheat sheet from `Numpy` to `xtensor` in its [documentation](https://xtensor.readthedocs.io/en/latest/).
 
-  Currently, I only use `xtensor` as a IO interface to define random inputs for module test and restore hyperparameters from JSON format. The data in the buffer of a `xtensor` array can be fed into a corresponding "torch tensor" later.
+    Currently, I only use `xtensor` as a IO interface to define random inputs for module test and restore hyperparameters from JSON format. The data in the buffer of a `xtensor` array can be fed into a corresponding "torch tensor" later.
   
-  [nlohmann_json](https://github.com/nlohmann/json): JSON for Modern C++.
+  - [nlohmann_json](https://github.com/nlohmann/json): JSON for Modern C++.
 
-  `xtensor` loads and dumps data to json, using the json library written by nlohmann.
+    `xtensor` loads and dumps data to json, using the json library written by nlohmann.
 
-  [libTorch](https://pytorch.org/cppdocs/): Pytorch C++ API.
+  - [libTorch](https://pytorch.org/cppdocs/): Pytorch C++ API.
 
-  PyTorch C++ API simplifies tensor computing and introduces GPU acceleration to this work, using CUDA and cuDNN.
+    PyTorch C++ API simplifies tensor computing and introduces GPU acceleration to this work, using CUDA and cuDNN.
 
-  Note: I installed nightly version of `libTorch` with `CUDA 10.0` support.
+    Note: I installed nightly version of `libTorch` with `CUDA 10.0` support.
 
-  [CUDA](https://developer.nvidia.com/cuda-downloads): NVIDIA parallel computing platform.
+  - [CUDA](https://developer.nvidia.com/cuda-downloads): NVIDIA parallel computing platform.
   
-  Version 10.0 has been tested on my machine, but I think the corresponding versions within the `libTorch` download list are all available.
+    Version 10.0 has been tested on my machine, but I think the corresponding versions within the `libTorch` download list are all available.
 
-  [CMake](https://cmake.org/download/): Tool to build, test and package a C++ software.
+  - [CMake](https://cmake.org/download/): Tool to build, test and package a C++ software.
   
-  The `CMake` installed through `apt` is `CMake 3.5.1` which causes a failure when `libTorch` tries to find `CUDA`. Here is a [description](https://discuss.pytorch.org/t/install-libtorch-error-pytorch-c-api/26756/2) about the problem.
+    The `CMake` installed through `apt` is `CMake 3.5.1` which causes a failure when `libTorch` tries to find `CUDA`. Here is a [description](https://discuss.pytorch.org/t/install-libtorch-error-pytorch-c-api/26756/2) about the problem.
   
-  You should update it to a newer version, say 3.13.4.
-  You can delete the old `CMake`, download the newer source code on official website and build it from scratch.  
+    You should update it to a newer version, say 3.13.4.
+    You can delete the old `CMake`, download the newer source code on official website and build it from scratch.  
 
 ## Usage
 
