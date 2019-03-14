@@ -24,7 +24,7 @@ For more details, see the [paper](http://files.is.tue.mpg.de/black/papers/SMPL20
 published by Max Planck Institute for Intelligent Systems on SIGGRAPH ASIA 
 2015.
 
-## Prerequisite
+## Prerequisites
 
 The code in this project have been tested on my machine. I'm not sure
 how the performance will be on other system environments.
