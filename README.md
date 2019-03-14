@@ -2,13 +2,13 @@
 
 A C++ Implementation of SMPL - A Skinned Multi-Person Linear Model.
 
-![SMPL_Modle](docs/media/SMPL_model.png)
+![SMPL_Modle](docs/media/front_page.png)
 
 ## Overview
 
 This project implements a 3D human skinning model - SMPL: A Skinned
 Multi-Person Linear Model with C++. The official SMPL model is 
-available at smpl.is.tue.mpg.de/.
+available at http://smpl.is.tue.mpg.de.
 
 The author-provided implementation based on `chumpy` and `opendr` contains
 spaghetti code,
@@ -160,16 +160,52 @@ how the performance will be on other system environments.
 
       nvidia-smi -lms
 
-## Features
+## Instructions
 
-beta version.
+Now, here is only a raw framework for SMPL++. I have written a lot of comments
+in the source code, you can just check them directly.
 
-## Documentation
+- Forward Propagation
 
+  SMPL++ implement the model described in the paper. The inputs of the system
+  are shape coefficients $\beta$, pose axis-angle parameterization $\theta$ 
+  and body translation $\vec{t}$. Change them to get different meshes.
+
+  <img src="docs/media/example.png" alt="drawing" width="400"/>
+
+  Note: Backward propagation hasn't been implemented yet.
+
+- Render Meshes
+
+  We don't have a GUI to render the output now! If you would like to see the 
+  meshes, try to render them in [MeshLab](http://www.meshlab.net/).
+
+- Pipeline
+
+  Following the paper, we can generate a mesh within four steps.
+  See documentations in "docs" for more details.
+
+  1. Generate pose blend shape and shape blend shape.
+
+  2. Regress joints from vertices.
+
+  3. Compute transformation matrix for each joints.
+
+  4. Linear Blend Skinning
+
+- Kinematic Tree
+
+  Finally, we have an kinematic tree for SMPL model:
+
+  <img src="docs/media/kinematic_tree.png" alt="drawing" width="400"/>
+
+  ![kinematic_tree](docs/media/kinematic_tree.png)
 
 ## TODO
 
-- [ ] Hyperparameters restore from `npz` files instead of `json` files. (`json` neither saves storage nor performances efficiently when being imported.)
+- [ ] Hyperparameters restore from `npz` files instead of `json` files. 
+      (`json` neither saves storage nor performances efficiently when being 
+      imported.)
 
 - [ ] A OpenGL GUI to render and manipulate the 3D mesh.
 
@@ -195,9 +231,9 @@ Currently, SMPL++ is for research purpose, any commercial usage should be allowe
 
 [3] Angjoo Kanazawa, Michael J. Black, David W. Jacobs, Jitendra Malik. "End-to-end Recovery of Human Shape and Pose". Computer Vision and Pattern Recognition (CVPR) 2018.
 
-[4] Official Website of SMPL: smpl.is.tue.mpg.de/.
+[4] Official Website of SMPL: http://smpl.is.tue.mpg.de.
 
-[5] Official Website of SMPLify: smplify.is.tue.mpg.de/.
+[5] Official Website of SMPLify: http://smplify.is.tue.mpg.de.
 
 [6] Official Website of HMR: https://akanazawa.github.io/hmr/.
 
