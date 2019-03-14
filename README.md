@@ -189,7 +189,7 @@ in the source code, you can just check them directly.
 
   2. Regress joints from vertices.
 
-  3. Compute transformation matrix for each joints.
+  3. Compute transformation matrix for each joint.
 
   4. Linear Blend Skinning
 
@@ -197,9 +197,7 @@ in the source code, you can just check them directly.
 
   Finally, we have an kinematic tree for SMPL model:
 
-  <img src="docs/media/kinematic_tree.png" alt="drawing" width="400"/>
-
-  ![kinematic_tree](docs/media/kinematic_tree.png)
+  <img src="docs/media/kinematic_tree.png" alt="drawing" width="500"/>
 
 ## TODO
 
