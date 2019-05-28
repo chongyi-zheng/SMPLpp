@@ -232,7 +232,3 @@ Currently, SMPL++ is for research purpose, any commercial usage should be allowe
 [4] Official Website of SMPL: http://smpl.is.tue.mpg.de.
 
 [5] Official Website of SMPLify: http://smplify.is.tue.mpg.de.
-
-[6] Official Website of HMR: https://akanazawa.github.io/hmr/.
-
-[7] Github Project Page for End-to-end Recovery of Human Shape and Pose: https://github.com/akanazawa/hmr.
