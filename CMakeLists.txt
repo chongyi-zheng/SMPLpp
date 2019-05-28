@@ -57,14 +57,14 @@ file(GLOB HEADER
 )
 
 file(GLOB SOURCE
-    "source/*.c"
-    "source/*.cpp"
-    "source/definition/*.c"
-    "source/definition/*.cpp"
-    "source/toolbox/*.c"
-    "source/toolbox/*.cpp"
-    "source/smpl/*.c"
-    "source/smpl/*.cpp"
+    "src/*.c"
+    "src/*.cpp"
+    "src/definition/*.c"
+    "src/definition/*.cpp"
+    "src/toolbox/*.c"
+    "src/toolbox/*.cpp"
+    "src/smpl/*.c"
+    "src/smpl/*.cpp"
 )
 
 ##
