@@ -168,8 +168,8 @@ in the source code, you can just check them directly.
 - Forward Propagation
 
   SMPL++ implement the model described in the paper. The inputs of the system
-  are shape coefficients $\beta$, pose axis-angle parameterization $\theta$ 
-  and body translation $\vec{t}$. Change them to get different meshes.
+  are shape coefficients \beta, pose axis-angle parameterization \theta 
+  and body translation \vec{t}. Change them to get different meshes.
 
   <img src="docs/media/example.png" alt="drawing" width="400"/>
 
@@ -201,9 +201,11 @@ in the source code, you can just check them directly.
 
 ## TODO
 
-- [ ] Hyperparameters restore from `npz` files instead of `json` files. 
+- [x] Hyperparameters restore from `npz` files instead of `json` files. 
       (`json` neither saves storage nor performances efficiently when being 
       imported.)
+
+    I have uploaded a script to fetch data from official `pkl`, check folder `script` for more detail.
 
 - [ ] A OpenGL GUI to render and manipulate the 3D mesh.
 
@@ -221,14 +223,7 @@ If you find any problem, error or even typo, feel free to contact me directly.
 
 Currently, SMPL++ is for research purpose, any commercial usage should be allowed by original authors.
 
-## Reference
+## Links
+[1] Official Website of SMPL: http://smpl.is.tue.mpg.de.
 
-[1] Matthew Loper, Naureen Mahmood, Javier Romero, Gerard Pons-Moll, and Michael J. Black. 2015. "SMPL: a skinned multi-person linear model". ACM Trans. Graph. 34, 6, Article 248 (October 2015), 16 pages.
-
-[2] Federica Bogo, Angjoo Kanazawa, Christoph Lassner, Peter Gehler, Javier Romero, Michael J. Black. "Keep It SMPL: Automatic Estimation of 3D Human Pose and Shape from a Single Image". Lecture Notes in Computer Science (2016): 561–578. Crossref. Web.
-
-[3] Angjoo Kanazawa, Michael J. Black, David W. Jacobs, Jitendra Malik. "End-to-end Recovery of Human Shape and Pose". Computer Vision and Pattern Recognition (CVPR) 2018.
-
-[4] Official Website of SMPL: http://smpl.is.tue.mpg.de.
-
-[5] Official Website of SMPLify: http://smplify.is.tue.mpg.de.
+[2] Official Website of SMPLify: http://smplify.is.tue.mpg.de.
