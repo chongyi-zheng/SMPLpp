@@ -32,32 +32,32 @@ find_package(Torch REQUIRED)
 ## GATHER FILES
 ##
 file(GLOB HEADER
-    "include/*.h"
-    "include/*.hpp"
-    "include/definition/*.h"
-    "include/definition/*.hpp"
-    "include/toolbox/*.h"
-    "include/toolbox/*.hpp"
-    "include/smpl/*.h"
-    "include/smpl/*.hpp"
+    "SMPL++/include/*.h"
+    "SMPL++/include/*.hpp"
+    "SMPL++/include/definition/*.h"
+    "SMPL++/include/definition/*.hpp"
+    "SMPL++/include/toolbox/*.h"
+    "SMPL++/include/toolbox/*.hpp"
+    "SMPL++/include/smpl/*.h"
+    "SMPL++/include/smpl/*.hpp"
 )
 
 file(GLOB SOURCE
-    "src/*.c"
-    "src/*.cpp"
-    "src/definition/*.c"
-    "src/definition/*.cpp"
-    "src/toolbox/*.c"
-    "src/toolbox/*.cpp"
-    "src/smpl/*.c"
-    "src/smpl/*.cpp"
+    "SMPL++/src/*.c"
+    "SMPL++/src/*.cpp"
+    "SMPL++/src/definition/*.c"
+    "SMPL++/src/definition/*.cpp"
+    "SMPL++/src/toolbox/*.c"
+    "SMPL++/src/toolbox/*.cpp"
+    "SMPL++/src/smpl/*.c"
+    "SMPL++/src/smpl/*.cpp"
 )
 
 ##
 ## INCLUDE DIRECTORIES
 ##
 set(SMPLXX_INCLUDE_DIRS
-    "include"
+    "SMPL++/include"
 )
 
 set(PROJECT_INCLUDE_DIRS
