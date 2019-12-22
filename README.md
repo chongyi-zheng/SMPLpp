@@ -63,7 +63,7 @@ I have tested the codes on my machine, but I'm not sure the performance on other
   
     You should update it to a newer version, such as 3.13.4 (>=3.12.2 should work). Delete the old CMake completely, download the latest official source codes, and build it from scratch.
 
-## Usage
+## Build on Linux
 
 - Package Installation
 
@@ -141,6 +141,10 @@ I have tested the codes on my machine, but I'm not sure the performance on other
   To track the usage of GPUs, use the following command:
 
       nvidia-smi -lms
+
+## Build on Window
+
+Follow these steps: https://github.com/YeeCY/SMPLpp/issues/5#issue-492889787.
 
 ## Instructions
 
