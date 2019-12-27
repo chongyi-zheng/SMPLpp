@@ -53,7 +53,7 @@ I have tested the codes on my machine, but I'm not sure the performance on other
 4. [CUDA](https://developer.nvidia.com/cuda-downloads): NVIDIA parallel 
    computing platform.
   
-    CUDA 10.0 works on my machine, besides I think the other versions fit the *libTorch* download list should work as well.
+    CUDA 10.0 works well on my machine. I think the other versions fit the *libTorch* download list should work as well.
 
 5. [CMake](https://cmake.org/download/): A tool to build, test and pack up 
    C++ program.
