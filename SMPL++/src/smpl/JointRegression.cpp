@@ -269,6 +269,7 @@ JointRegression &JointRegression::operator=(
         torch::IntArrayRef({BATCH_SIZE, JOINT_NUM, 3})) {
         m__joints = jointRegression.m__joints.clone().to(m__device);
     }
+    return *this;
 }
 
 /**setDevice
