@@ -35,7 +35,11 @@
 #include <string>
 //----------
 #include <nlohmann/json.hpp>
+#ifdef TARGET_IOS
+#include <LibTorch-Lite.h>
+#else
 #include <torch/torch.h>
+#endif // TARGET_IOS
 //----------
 #include "smpl/BlendShape.h"
 #include "smpl/JointRegression.h"

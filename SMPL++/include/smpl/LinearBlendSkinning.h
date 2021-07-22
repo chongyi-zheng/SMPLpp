@@ -31,7 +31,11 @@
 
 //===== INCLUDES ==============================================================
 
+#ifdef TARGET_IOS
+#include <LibTorch-Lite.h>
+#else
 #include <torch/torch.h>
+#endif // TARGET_IOS
 
 //===== EXTERNAL FORWARD DECLARATIONS =========================================
 
