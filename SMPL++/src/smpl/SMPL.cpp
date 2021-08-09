@@ -49,6 +49,10 @@
 
 namespace smpl {
 
+namespace {
+const torch::Tensor kEmptyTensor = torch::Tensor();
+}
+
 //===== INTERNAL MACROS =======================================================
 
 
@@ -500,6 +504,10 @@ torch::Tensor SMPL::getVertex() noexcept(false)
     return vertices;
 }
 
+torch::Tensor SMPL::getExtra() noexcept {
+    return m__skinner.getExtra().clone().to(m__device);
+}
+
 /**init
  * 
  * Brief
@@ -602,7 +610,8 @@ void SMPL::init() noexcept(false)
  */
 void SMPL::launch(
     torch::Tensor &beta, 
-    torch::Tensor &theta) noexcept(false)
+    torch::Tensor &theta,
+    std::optional<torch::Tensor> &extra) noexcept(false)
 {
     if (m__model.is_null()
         && beta.sizes() !=
@@ -655,9 +664,15 @@ void SMPL::launch(
         //
         // skinning
         //
+
         m__skinner.setWeight(m__weights);
         m__skinner.setRestShape(restShape);
         m__skinner.setTransformation(transformation);
+        if(extra.has_value()) {
+            m__skinner.setExtra(*extra + shapeBlendShape + poseBlendShape);
+        } else {
+            m__skinner.setExtra(kEmptyTensor);
+        }
 
         m__skinner.skinning();
     }

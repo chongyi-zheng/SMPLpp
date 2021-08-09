@@ -245,12 +245,14 @@ public: // PUBLIC METHODS
     torch::Tensor getFaceIndex() noexcept(false);
     torch::Tensor getRestJoint() noexcept(false);
     torch::Tensor getVertex() noexcept(false);
+    torch::Tensor getExtra() noexcept;
 
     // %% Modeling %%
     void init() noexcept(false);
     void launch(
         torch::Tensor &beta,
-        torch::Tensor &theta) noexcept(false);
+        torch::Tensor &theta,
+        std::optional<torch::Tensor> &extra) noexcept(false);
     void out(int64_t index) noexcept(false);
 
 };
