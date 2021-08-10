@@ -160,6 +160,11 @@ private: // PIRVATE ATTRIBUTES
     torch::Tensor m__transformation;
     torch::Tensor m__weights;
     torch::Tensor m__posedVert;
+    
+    std::optional<torch::Tensor> m__restExtra;
+    torch::Tensor m__posedExtra;
+
+    torch::Tensor m__skinning;
 
 protected: // PROTECTED ATTRIBUTES
 
@@ -193,12 +198,15 @@ public: // PUBLIC METHODS
     void setRestShape(const torch::Tensor &restShape) noexcept(false);
     void setTransformation(
         const torch::Tensor &transformation) noexcept(false);
+    void setExtra(const torch::Tensor &clothes) noexcept;
 
     torch::Tensor getVertex() noexcept(false);
+    torch::Tensor getExtra() noexcept;
 
     // %% Linear Blend Skinning %%
     void skinning() noexcept(false);
 
+    torch::Tensor getSkinningTransformation() const;
 };
 
 //=============================================================================

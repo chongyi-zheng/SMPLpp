@@ -11,7 +11,7 @@ project(SMPL++)
 ##
 ## COMPILER SETTINGS
 ##
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -81,7 +81,6 @@ set(PROJECT_LIBRARIES
     ${xtensor_blas_LIBRARIES}
     nlohmann_json::nlohmann_json
     ${TORCH_LIBRARIES}
-    stdc++fs                        # std::experimental::filesystem
 )
 
 # message("----- Libraries Paths -----")

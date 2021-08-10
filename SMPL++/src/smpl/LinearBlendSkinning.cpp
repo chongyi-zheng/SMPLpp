@@ -373,6 +373,16 @@ void LinearBlendSkinning::setTransformation(
     return;
 }
 
+void LinearBlendSkinning::setExtra(const torch::Tensor &clothes) noexcept {
+    // TODO: size check
+    m__restExtra = clothes.clone().to(m__device);
+}
+
+torch::Tensor LinearBlendSkinning::getExtra() noexcept {
+    // TODO: size check
+    return m__posedExtra;
+}
+
 /**getVertex
  * 
  * Brief
@@ -428,12 +438,9 @@ void LinearBlendSkinning::skinning() noexcept(false)
     // Cartesian coordinates to homogeneous coordinates
     //
     torch::Tensor restShapeHomo;
-    try {
-        restShapeHomo = cart2homo(m__restShape);// (N, 6890, 4)
-    }
-    catch(std::exception &e) {
-        throw;
-    }
+    torch::Tensor restExtra;
+    
+    restShapeHomo = cart2homo(m__restShape);// (N, 6890, 4)
 
     //
     // linear blend skinning
@@ -446,14 +453,19 @@ void LinearBlendSkinning::skinning() noexcept(false)
         coefficients, restShapeHomo);// (N, 6890, 4, 1)
     verticesHomo = torch::squeeze(verticesHomo, 3);// (N, 6890, 4)
 
+    m__skinning = std::move(coefficients);
+
     //
     // homogeneous coordinates to Cartesian coordinates
     //
-    try {
-        m__posedVert = homo2cart(verticesHomo);
-    }
-    catch(std::exception &e) {
-        throw;
+    m__posedVert = homo2cart(verticesHomo);
+    
+    if(m__restExtra.has_value() && m__restExtra->sizes() == torch::IntArrayRef({BATCH_SIZE, VERTEX_NUM, 3})) {
+        restExtra = cart2homo(*m__restExtra);// (N, 6890, 4)
+        restExtra = torch::unsqueeze(restExtra, 3);// (N, 6890, 4, 1)
+        torch::Tensor clothesHomo = torch::matmul(coefficients, restExtra);// (N, 6890, 4, 1)
+        clothesHomo = torch::squeeze(clothesHomo, 3);// (N, 6890, 4)
+        m__posedExtra = homo2cart(clothesHomo);
     }
 
     return;
@@ -536,6 +548,10 @@ torch::Tensor LinearBlendSkinning::homo2cart(torch::Tensor &homo)
         torch::IntList({0, 3}));// (N, 6890, 3)
     
     return cart;
+}
+
+torch::Tensor LinearBlendSkinning::getSkinningTransformation() const {
+    return m__skinning.clone().to(m__device);
 }
 
 //=============================================================================
