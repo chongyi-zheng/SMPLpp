@@ -161,7 +161,7 @@ private: // PIRVATE ATTRIBUTES
     torch::Tensor m__weights;
     torch::Tensor m__posedVert;
     
-    torch::Tensor m__restExtra;
+    std::optional<torch::Tensor> m__restExtra;
     torch::Tensor m__posedExtra;
 
     torch::Tensor m__skinning;

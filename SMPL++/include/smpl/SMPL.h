@@ -252,7 +252,7 @@ public: // PUBLIC METHODS
     void launch(
         torch::Tensor &beta,
         torch::Tensor &theta,
-        std::optional<torch::Tensor> &extra) noexcept(false);
+        const std::optional<torch::Tensor> &extra) noexcept(false);
     void out(int64_t index) noexcept(false);
 
     // Mesh transformations

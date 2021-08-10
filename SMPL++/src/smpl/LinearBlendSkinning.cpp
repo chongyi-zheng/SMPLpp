@@ -460,8 +460,8 @@ void LinearBlendSkinning::skinning() noexcept(false)
     //
     m__posedVert = homo2cart(verticesHomo);
     
-    if(m__restExtra.sizes() == torch::IntArrayRef({BATCH_SIZE, VERTEX_NUM, 3})) {
-        restExtra = cart2homo(m__restExtra);// (N, 6890, 4)
+    if(m__restExtra.has_value() && m__restExtra->sizes() == torch::IntArrayRef({BATCH_SIZE, VERTEX_NUM, 3})) {
+        restExtra = cart2homo(*m__restExtra);// (N, 6890, 4)
         restExtra = torch::unsqueeze(restExtra, 3);// (N, 6890, 4, 1)
         torch::Tensor clothesHomo = torch::matmul(coefficients, restExtra);// (N, 6890, 4, 1)
         clothesHomo = torch::squeeze(clothesHomo, 3);// (N, 6890, 4)

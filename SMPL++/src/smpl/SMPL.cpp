@@ -49,10 +49,6 @@
 
 namespace smpl {
 
-namespace {
-const torch::Tensor kEmptyTensor = torch::Tensor();
-}
-
 //===== INTERNAL MACROS =======================================================
 
 
@@ -611,7 +607,7 @@ void SMPL::init() noexcept(false)
 void SMPL::launch(
     torch::Tensor &beta, 
     torch::Tensor &theta,
-    std::optional<torch::Tensor> &extra) noexcept(false)
+    const std::optional<torch::Tensor> &extra) noexcept(false)
 {
     if (m__model.is_null()
         && beta.sizes() !=
@@ -670,8 +666,6 @@ void SMPL::launch(
         m__skinner.setTransformation(transformation);
         if(extra.has_value()) {
             m__skinner.setExtra(*extra + shapeBlendShape + poseBlendShape);
-        } else {
-            m__skinner.setExtra(kEmptyTensor);
         }
 
         m__skinner.skinning();
