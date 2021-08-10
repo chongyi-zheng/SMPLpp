@@ -750,6 +750,14 @@ void SMPL::out(int64_t index) noexcept(false)
     return;
 }
 
+torch::Tensor SMPL::getOffset() const {
+    return m__regressor.getShapeTransformation();
+}
+
+torch::Tensor SMPL::getSkinning() const {
+    return m__skinner.getSkinningTransformation();
+}
+
 
 //=============================================================================
 } // namespace smpl

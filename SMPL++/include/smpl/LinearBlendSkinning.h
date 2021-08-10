@@ -164,6 +164,8 @@ private: // PIRVATE ATTRIBUTES
     torch::Tensor m__restExtra;
     torch::Tensor m__posedExtra;
 
+    torch::Tensor m__skinning;
+
 protected: // PROTECTED ATTRIBUTES
 
 public: // PUBLIC ATTRIBUTES
@@ -204,6 +206,7 @@ public: // PUBLIC METHODS
     // %% Linear Blend Skinning %%
     void skinning() noexcept(false);
 
+    torch::Tensor getSkinningTransformation() const;
 };
 
 //=============================================================================

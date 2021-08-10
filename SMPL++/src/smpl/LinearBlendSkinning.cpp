@@ -453,6 +453,8 @@ void LinearBlendSkinning::skinning() noexcept(false)
         coefficients, restShapeHomo);// (N, 6890, 4, 1)
     verticesHomo = torch::squeeze(verticesHomo, 3);// (N, 6890, 4)
 
+    m__skinning = std::move(coefficients);
+
     //
     // homogeneous coordinates to Cartesian coordinates
     //
@@ -546,6 +548,10 @@ torch::Tensor LinearBlendSkinning::homo2cart(torch::Tensor &homo)
         torch::IntList({0, 3}));// (N, 6890, 3)
     
     return cart;
+}
+
+torch::Tensor LinearBlendSkinning::getSkinningTransformation() const {
+    return m__skinning.clone().to(m__device);
 }
 
 //=============================================================================

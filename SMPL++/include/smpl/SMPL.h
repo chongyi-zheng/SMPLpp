@@ -255,6 +255,11 @@ public: // PUBLIC METHODS
         std::optional<torch::Tensor> &extra) noexcept(false);
     void out(int64_t index) noexcept(false);
 
+    // Mesh transformations
+    // Returns Tensor(3)
+    torch::Tensor getOffset() const;
+    // Returns Tensor(4, 4)
+    torch::Tensor getSkinning() const;
 };
 
 //=============================================================================

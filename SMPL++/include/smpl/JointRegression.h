@@ -179,6 +179,8 @@ private: // PRIVATE ATTRIBUTES
     torch::Tensor m__joints;
     torch::Tensor m__jointRegressor;
 
+    torch::Tensor m__offset;
+
 protected: // PROTECTED ATTRIBUTES
 
 public: // PUBLIC ATTRIBUTES
@@ -217,6 +219,8 @@ public: // PUBLIC METHODS
     
     torch::Tensor getRestShape() noexcept(false);
     torch::Tensor getJoint() noexcept(false);
+
+    torch::Tensor getShapeTransformation() const;
 
     // %% Joint Regression Wrapper %%
     void regress() noexcept(false);

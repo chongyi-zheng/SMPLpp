@@ -67,13 +67,14 @@ namespace smpl {
  * 
  */
 JointRegression::JointRegression() noexcept(true) :
-    m__device(torch::kCPU),
-    m__restShape(),
-    m__shapeBlendShape(),
-    m__poseBlendShape(),
-    m__templateRestShape(),
-    m__joints(),
-    m__jointRegressor()
+        m__device(torch::kCPU),
+        m__restShape(),
+        m__shapeBlendShape(),
+        m__poseBlendShape(),
+        m__templateRestShape(),
+        m__joints(),
+        m__jointRegressor(),
+        m__offset()
 {
 }
 
@@ -104,11 +105,12 @@ JointRegression::JointRegression() noexcept(true) :
  */
 JointRegression::JointRegression(torch::Tensor &jointRegressor,
     torch::Tensor &templateRestShape, torch::Device &device) noexcept(false) :
-    m__device(torch::kCPU),
-    m__restShape(),
-    m__shapeBlendShape(),
-    m__poseBlendShape(),
-    m__joints()
+        m__device(torch::kCPU),
+        m__restShape(),
+        m__shapeBlendShape(),
+        m__poseBlendShape(),
+        m__joints(),
+        m__offset()
 {
     if (device.has_index()) {
         m__device = device;
@@ -117,12 +119,12 @@ JointRegression::JointRegression(torch::Tensor &jointRegressor,
         throw smpl_error("JointRegression", "Failed to fetch device index!");
     }
 
-    if (jointRegressor.sizes() == 
+    if (jointRegressor.sizes() ==
         torch::IntArrayRef({JOINT_NUM, VERTEX_NUM})) {
         m__jointRegressor = jointRegressor.clone().to(m__device);
     }
     else {
-        throw smpl_error("JointRegression", 
+        throw smpl_error("JointRegression",
             "Failed to initialize joint regressor!");
     }
 
@@ -559,9 +561,9 @@ void JointRegression::linearCombine() noexcept(false)
         torch::IntArrayRef({BATCH_SIZE, VERTEX_NUM, 3})
         && m__templateRestShape.sizes() == 
         torch::IntArrayRef({VERTEX_NUM, 3})) {
-        m__restShape = m__templateRestShape 
-            + m__shapeBlendShape 
-            + m__poseBlendShape;
+
+        m__offset = m__shapeBlendShape + m__poseBlendShape;
+        m__restShape = m__templateRestShape + m__offset;
     }
     else {
         throw smpl_error("JointRegression", "Cannot linearly combine shapes!");
@@ -604,6 +606,10 @@ void JointRegression::jointRegress() noexcept(false)
     }
 
     return;
+}
+
+torch::Tensor JointRegression::getShapeTransformation() const {
+    return m__offset.clone().to(m__device);
 }
 
 //=============================================================================
