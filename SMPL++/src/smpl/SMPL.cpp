@@ -527,7 +527,13 @@ void SMPL::init() noexcept(false)
     std::experimental::filesystem::path path(m__modelPath);
     if (std::experimental::filesystem::exists(path)) {
         std::ifstream file(path);
-        file >> m__model;
+        if( path.extension() == ".cbor"){
+            m__model = nlohmann::json::from_cbor(file);
+        } else if( path.extension() == ".json" ){
+            file >> m__model;
+        } else {
+            throw std::runtime_error("Invalid SMPL-model file. Only json/cbor are supported");
+        }
 
         //
         // data loading
