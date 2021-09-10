@@ -15,7 +15,7 @@
 # data and write them in to numpy and json format.
 #
 # =============================================================================
-#!/usr/bin/python2
+#!/usr/bin/python3
 
 from __future__ import absolute_import
 from __future__ import division
@@ -24,7 +24,7 @@ from __future__ import print_function
 import sys
 import os
 import numpy as np
-import pickle as pkl
+import pandas as pd
 import json
 
 
@@ -84,8 +84,7 @@ def main(args):
     #                     elements.
     # vert_sym_idxs: symmetrical corresponding vertex indices - (6890, )
     # weights_prior: prior weights for linear blend skinning
-    with open(raw_model_path, 'rb') as f:
-        raw_model_data = pkl.load(f)
+    raw_model_data = pd.read_pickle(raw_model_path)
     vertices_template = np.array(raw_model_data['v_template'])
     face_indices = np.array(raw_model_data['f'] + 1)  # starts from 1
     weights = np.array(raw_model_data['weights'])
@@ -116,23 +115,11 @@ def main(args):
     }
 
     np.savez(np_save_path, **model_data_np)
-    with open(json_save_path, 'wb+') as f:
+    with open(json_save_path, 'w+') as f:
         json.dump(model_data_json, f, indent=4, sort_keys=True)
 
     print('Save SMPL Model to: ', os.path.abspath(save_dir))
 
 
 if __name__ == '__main__':
-    if sys.version_info[0] != 2:
-        raise EnvironmentError('Run this file with Python2!')
-    if len(sys.argv) < 4:
-        raise SystemError('Too few arguments!\n'
-                          'USAGE: python2 preprocess.py '
-                          '<gender> <path-to-the-pkl> '
-                          '<dir-to-the-model>')
-    elif len(sys.argv) > 4:
-        raise SystemError('Too many arguments, only one model at a time!\n'
-                          'USAGE: python2 preprocess.py '
-                          '<path-to-the-pkl> <dir-to-the-model>')
-
     main(sys.argv)

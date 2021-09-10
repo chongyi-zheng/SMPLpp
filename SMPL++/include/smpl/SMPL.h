@@ -260,6 +260,8 @@ public: // PUBLIC METHODS
     torch::Tensor getOffset() const;
     // Returns Tensor(4, 4)
     torch::Tensor getSkinning() const;
+    // Returns Tensor(24, 4, 4)
+    torch::Tensor getJointTransformations() const;
 };
 
 //=============================================================================

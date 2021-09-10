@@ -204,7 +204,7 @@ public: // PUBLIC METHODS
     void setPoseRotation(const torch::Tensor &poseRot) noexcept(false);
     void setKinematicTree(const torch::Tensor &kineTree) noexcept(false);
 
-    torch::Tensor getTransformation() noexcept(false);
+    torch::Tensor getTransformation() const noexcept(false);
     
     // %% Transformation wrapper %%
     void transform();
