@@ -758,6 +758,10 @@ torch::Tensor SMPL::getSkinning() const {
     return m__skinner.getSkinningTransformation();
 }
 
+torch::Tensor SMPL::getJointTransformations() const {
+    return m__transformer.getTransformation(); 
+}
+
 
 //=============================================================================
 } // namespace smpl

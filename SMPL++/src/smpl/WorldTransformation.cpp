@@ -396,7 +396,7 @@ void WorldTransformation::setKinematicTree(const torch::Tensor &kineTree)
  *          after eliminating effects of rest pose, (N, 24, 4, 4).
  * 
  */
-torch::Tensor WorldTransformation::getTransformation() noexcept(false)
+torch::Tensor WorldTransformation::getTransformation() const noexcept(false)
 {
     torch::Tensor transformation;
 
