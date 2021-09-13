@@ -44,16 +44,22 @@ def main(args):
     raw_model_path = args[2]
     save_dir = args[3]
 
-    if gender == 'female':
-        NP_SAVE_FILE = 'smpl_female.npz'
-        JSON_SVAE_FILE = 'smpl_female.json'
-    elif gender == 'male':
-        NP_SAVE_FILE = 'smpl_male.npz'
-        JSON_SVAE_FILE = 'smpl_male.json'
+    if gender == "female":
+        NP_SAVE_FILE = "smpl_female.npz"
+        JSON_SVAE_FILE = "smpl_female.json"
+    elif gender == "male":
+        NP_SAVE_FILE = "smpl_male.npz"
+        JSON_SVAE_FILE = "smpl_male.json"
+    elif gender == "neutral":
+        NP_SAVE_FILE = "smpl_neutral.npz"
+        JSON_SVAE_FILE = "smpl_neutral.json"
     else:
-        raise SystemError('Please specify gender of the model!\n'
-                          'USAGE: \'*f*.pkl\' - female, '
-                          '\'*m*.pkl\' - male')
+        raise SystemError(
+            "Please specify gender of the model!\n"
+            "USAGE: '*f*.pkl' - female, "
+            "'*m*.pkl' - male"
+            "'*n*.pkl' - neutral"
+        )
 
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
@@ -85,41 +91,59 @@ def main(args):
     # vert_sym_idxs: symmetrical corresponding vertex indices - (6890, )
     # weights_prior: prior weights for linear blend skinning
     raw_model_data = pd.read_pickle(raw_model_path)
-    vertices_template = np.array(raw_model_data['v_template'])
-    face_indices = np.array(raw_model_data['f'] + 1)  # starts from 1
-    weights = np.array(raw_model_data['weights'])
-    shape_blend_shapes = np.array(raw_model_data['shapedirs'])
-    pose_blend_shapes = np.array(raw_model_data['posedirs'])
-    joint_regressor = np.array(raw_model_data['J_regressor'].toarray())
-    kinematic_tree = np.array(raw_model_data['kintree_table'])
+    vertices_template = np.array(raw_model_data["v_template"])
+    face_indices = np.array(raw_model_data["f"] + 1)  # starts from 1
+    weights = np.array(raw_model_data["weights"])
+    shape_blend_shapes = np.array(raw_model_data["shapedirs"])
+    pose_blend_shapes = np.array(raw_model_data["posedirs"])
+    joint_regressor = np.array(raw_model_data["J_regressor"].toarray())
+    kinematic_tree = np.array(raw_model_data["kintree_table"])
 
     model_data_np = {
-        'vertices_template': vertices_template,
-        'face_indices': face_indices,
-        'weights': weights,
-        'shape_blend_shapes': shape_blend_shapes,
-        'pose_blend_shapes': pose_blend_shapes,
-        'joint_regressor': joint_regressor,
-        'kinematic_tree': kinematic_tree
+        "vertices_template": vertices_template,
+        "face_indices": face_indices,
+        "weights": weights,
+        "shape_blend_shapes": shape_blend_shapes,
+        "pose_blend_shapes": pose_blend_shapes,
+        "joint_regressor": joint_regressor,
+        "kinematic_tree": kinematic_tree,
     }
 
     # Data must be converted to list before storing as json.
     model_data_json = {
-        'vertices_template': vertices_template.tolist(),
-        'face_indices': face_indices.tolist(),
-        'weights': weights.tolist(),
-        'shape_blend_shapes': shape_blend_shapes.tolist(),
-        'pose_blend_shapes': pose_blend_shapes.tolist(),
-        'joint_regressor': joint_regressor.tolist(),
-        'kinematic_tree': kinematic_tree.tolist()
+        "vertices_template": vertices_template.tolist(),
+        "face_indices": face_indices.tolist(),
+        "weights": weights.tolist(),
+        "shape_blend_shapes": shape_blend_shapes.tolist(),
+        "pose_blend_shapes": pose_blend_shapes.tolist(),
+        "joint_regressor": joint_regressor.tolist(),
+        "kinematic_tree": kinematic_tree.tolist(),
     }
 
     np.savez(np_save_path, **model_data_np)
-    with open(json_save_path, 'w+') as f:
+    with open(json_save_path, "w+") as f:
         json.dump(model_data_json, f, indent=4, sort_keys=True)
 
-    print('Save SMPL Model to: ', os.path.abspath(save_dir))
+    print("Save SMPL Model to: ", os.path.abspath(save_dir))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
+    if sys.version_info[0] < 3 or (
+        sys.version_info[0] == 3 and sys.version_info[1] < 8
+    ):
+        raise EnvironmentError("Run this file with Python 3.8 or above!")
+
+    if len(sys.argv) < 4:
+        raise SystemError(
+            "Too few arguments!\n"
+            "USAGE: python3 preprocess.py "
+            "<gender> <path-to-the-pkl> "
+            "<dir-to-the-model>"
+        )
+    elif len(sys.argv) > 4:
+        raise SystemError(
+            "Too many arguments, only one model at a time!\n"
+            "USAGE: python3 preprocess.py "
+            "<path-to-the-pkl> <dir-to-the-model>"
+        )
     main(sys.argv)
