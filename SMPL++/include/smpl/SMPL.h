@@ -262,8 +262,10 @@ public: // PUBLIC METHODS
     torch::Tensor getSkinning() const;
     // Returns Tensor(24, 4, 4)
     torch::Tensor getJointTransformations() const;
-    
+
     nlohmann::json getModelJson() const;
+    // Returns Tensor(6890, 3, 207)
+    torch::Tensor getPoseBlendBasis() const;
 };
 
 //=============================================================================
