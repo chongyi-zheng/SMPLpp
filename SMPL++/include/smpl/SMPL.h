@@ -262,6 +262,8 @@ public: // PUBLIC METHODS
     torch::Tensor getSkinning() const;
     // Returns Tensor(24, 4, 4)
     torch::Tensor getJointTransformations() const;
+    
+    nlohmann::json getModelJson() const;
 };
 
 //=============================================================================
