@@ -869,6 +869,14 @@ torch::Tensor BlendShape::rodrigues(torch::Tensor &theta)
         + skew * sine 
         + torch::matmul(skew, skew) * (1 - cosine);// (N, 24, 3, 3)
 
+    for (int i = 0; i < BATCH_SIZE; ++i) {
+        for (int j = 0; j < JOINT_NUM; ++j) {
+            if (angles[i][j][0].item<float>() == 0.f) {
+                rotation[i][j] = torch::eye(3, 3);
+            }
+        }
+    }
+
     return rotation;
 }
 

@@ -765,6 +765,12 @@ torch::Tensor SMPL::getJointTransformations() const {
 nlohmann::json SMPL::getModelJson() const {
     return m__model;
 }
+
+torch::Tensor SMPL::getPoseBlendBasis() const {
+    return m__poseBlendBasis.clone().to(m__device);
+}
+
+
 //=============================================================================
 } // namespace smpl
 //=============================================================================
