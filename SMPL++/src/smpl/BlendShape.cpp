@@ -806,7 +806,8 @@ torch::Tensor BlendShape::rodrigues(torch::Tensor &theta)
     //
     // rotation angles and axis
     //
-    torch::Tensor angles = torch::norm(theta, 2, {2}, true);// (N, 24, 1)
+    const double eps = 1e-8; // small value to avoid zero division
+    torch::Tensor angles = torch::norm(theta + eps, 2, {2}, true);// (N, 24, 1)
     torch::Tensor axes = theta / angles;// (N, 24, 3)
 
     //
